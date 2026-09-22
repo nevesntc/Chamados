@@ -18,7 +18,7 @@ watch(
 );
 function apply() {
   router.get(
-    '/chamados',
+    '/workspace/chamados',
     Object.fromEntries(Object.entries(values).filter(([, value]) => value !== '' && value != null)),
     { preserveState: true, preserveScroll: true, replace: true },
   );

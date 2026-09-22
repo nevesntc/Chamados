@@ -40,13 +40,17 @@ Empate pelo menor ID. Em edição automática, excluir o próprio chamado da con
 
 O desempate é previsível, porém não garante rodízio histórico. Histórico e escolha por última atribuição poderiam ser adicionados se surgisse esse requisito.
 
-## ADR-005 — Segurança e escopo de demonstração
+## ADR-005 — Autenticação e isolamento de workspaces
 
-Sem login na versão local: a especificação não define perfis nem autenticação. O comentário em authorize() torna essa decisão visível. Não apresentar essa configuração como pronta para exposição pública.
+O pedido posterior exigiu cadastro e login reais, sem pessoas fictícias. Laravel Auth com sessão e senha com hash atende isso no mesmo monólito; login regenera a sessão e logout a invalida. Rotas de trabalho passam por `auth` e `EnsureCurrentWorkspace`.
 
-CSRF do framework, escrita explícita dos campos validados, FK restrita, enum no banco e texto escapado. Data de abertura vem do servidor. Não aceitar HTML em descrição. Credenciais e banco local ficam fora do Git.
+Cada cadastro cria usuário, workspace privado, vínculo de dono e responsável na mesma transação. Um usuário pode participar de vários workspaces; `current_workspace_id` define o ativo. Convite gerado pelo dono guarda apenas SHA-256 do código aleatório e expira em sete dias. Aceitar convite cria vínculo e responsável. A opção de troca só consulta os workspaces do usuário. Nomes de responsáveis acompanham a alteração do perfil.
 
-Sem exclusão, anexos, notificações, permissões, histórico ou bloqueio otimista. Escritas simultâneas são serializadas, mas um formulário antigo pode sobrescrever uma edição mais recente: última gravação vence. Essa é uma limitação documentada, não um controle de conflito completo.
+Toda consulta de chamados e responsáveis usa o workspace ativo. Route binding devolve 404 para ID de outro workspace; Form Request recusa responsável de outra equipe. CreateTicket recebe workspaceId validado pelo middleware, e AssigneeSelector seleciona apenas nele, dentro do mesmo bloqueio de escrita. A proteção é aplicada no backend; tipos Vue não substituem autorização.
+
+CSRF, escrita explícita dos campos validados, FK, enum no banco e texto escapado continuam. O seed padrão é vazio: três responsáveis exigem três cadastros reais com convite. Registros antigos sem workspace são preservados pela migration, porém não aparecem em equipes novas. No Supabase, as três linhas demonstrativas sem chamados foram removidas em transação com guardas de contagem, nome e ausência de usuários.
+
+Sem exclusão, anexos, notificações, recuperação por e-mail, histórico ou bloqueio otimista. Escritas simultâneas são serializadas, mas um formulário antigo pode sobrescrever edição mais recente: última gravação vence. Não existe isolamento por papel dentro de uma equipe: membros veem e editam os chamados dela.
 
 ## ADR-006 — Qualidade e documentação como parte da mudança
 
@@ -56,10 +60,13 @@ README é o ponto de entrada. Este arquivo guarda decisões; requisitos.md rastr
 
 ## Modelo
 
-- assignees: id, name, timestamps.
-- tickets: id, title, description, priority, status, assignee_id, timestamps.
+- users: conta, senha com hash, current_workspace_id.
+- workspaces e workspace_members: equipes privadas e vínculos owner/member.
+- workspace_invites: hash do código e expiração.
+- assignees: id, name, workspace_id, user_id, timestamps.
+- tickets: id, title, description, priority, status, assignee_id, workspace_id, timestamps.
 - ticket_write_locks: linha única id=1, version.
-- As migrations padrão de usuários/sessões, cache e jobs do esqueleto Laravel são mantidas; não representam funcionalidades disponíveis na interface. Os drivers locais usam arquivos/síncrono.
+- Sessões usam arquivos localmente e PostgreSQL em produção; cache e jobs padrão são mantidos.
 
 Carga é sempre derivada da consulta, sem contador redundante em assignees. Listagem tem paginação de 20 e ordenação estável por abertura/ID. Data exibida em São Paulo e armazenada em UTC.
 
@@ -75,10 +82,16 @@ A coordenação PostgreSQL usa o mesmo incremento antes da leitura, sob READ COM
 
 CD manual na main, environment production e CI obrigatória. Secrets passam por arquivos temporários ignorados pelo Git e Docker, removidos ao fim do job. Migrations antecedem rollout, nunca rodam no boot. Mudanças de schema precisam ser retrocompatíveis: rollback de código não reverte dados.
 
-Não adicionamos login. Controle de acesso na infraestrutura deve preceder uso real. Publicação efetiva depende de credenciais Cloudflare e conexão Supabase alcançável. Consulte deploy.md e validacao.md.
+O login e isolamento foram adicionados depois, na ADR-005. A implantação Cloudflare permanece opcional e depende das credenciais da conta correta. Consulte deploy.md e validacao.md.
 
 ## ADR-008 — Vercel como alternativa de hospedagem
 
-O usuário autorizou Vercel se simplificar a publicação. A documentação atual suporta Container Images em beta. vercel.json reutiliza o Dockerfile existente através de Services, mantendo Laravel, Postgres e sessões externas. Evitamos duplicar imagens ou mudar o produto para outra stack. Configuração adicionada, mas execução no provedor só pode ser considerada validada após deploy e smoke test autenticados. A opção Cloudflare permanece; não há publicação dupla automática.
+O usuário autorizou Vercel se simplificar a publicação. `vercel.json` reutiliza o Dockerfile existente através de Services, mantendo Laravel, Postgres e sessões externas. Evitamos duplicar imagens ou mudar o produto para outra stack. O projeto está ligado ao GitHub para deploys da main; migrations são aplicadas antes do rollout. A opção Cloudflare permanece; não há publicação dupla automática.
 
 O Dockerfile normaliza leitura/travessia do código recebido por upload. O entrypoint fixa umask e atribui ao usuário Apache os caches gerados na inicialização; não depende do umask do provedor. O smoke da CI inicializa com umask 077 para verificar esse caso.
+
+## ADR-009 — Rotas e atualização da interface
+
+URLs de trabalho ficam em `/workspace`, `/workspace/chamados`, `/workspace/equipe` e `/workspace/perfil`; `/chamados` redireciona para a nova lista. Cadastro e login ficam em `/cadastro` e `/entrar`. Inertia mantém rotas no Laravel; não há Vue Router nem API duplicada.
+
+Painel e lista consultam o servidor a cada 10 segundos apenas quando a aba está visível. Isso atualiza trabalho compartilhado com latência máxima aproximada de dez segundos, sem infraestrutura de WebSocket. As gravações continuam imediatas e retornam o estado salvo; não prometemos push instantâneo. Formulários não são recarregados durante edição.

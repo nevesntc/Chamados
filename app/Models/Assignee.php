@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Assignee extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'workspace_id', 'user_id'];
 
     public function tickets(): HasMany
     {

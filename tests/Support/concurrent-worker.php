@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Tickets\CreateTicket;
 use App\Models\Assignee;
+use App\Models\Workspace;
 use App\Services\Tickets\TicketWriteTransaction;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
@@ -32,8 +33,9 @@ if (getenv('DB_CONNECTION') === 'pgsql') {
 }
 if ($mode === 'setup') {
     Artisan::call('migrate', ['--force' => true]);
-    Assignee::create(['name' => 'Ana']);
-    Assignee::create(['name' => 'Bruno']);
+    $workspace = Workspace::create(['name' => 'Teste concorrente']);
+    Assignee::create(['name' => 'Ana', 'workspace_id' => $workspace->id]);
+    Assignee::create(['name' => 'Bruno', 'workspace_id' => $workspace->id]);
     exit(0);
 }
 $data = ['title' => 'Concorrência '.$mode, 'description' => 'Teste de escrita concorrente.', 'priority' => 'medium', 'assignment_mode' => 'automatic'];
@@ -48,10 +50,10 @@ if ($mode === 'first') {
             usleep(10000);
         }
 
-        return app(CreateTicket::class)->execute($data);
+        return app(CreateTicket::class)->execute($data, 1);
     });
 } else {
     touch($signal.'.started');
-    $ticket = app(CreateTicket::class)->execute($data);
+    $ticket = app(CreateTicket::class)->execute($data, 1);
 }
 echo $ticket->assignee_id;

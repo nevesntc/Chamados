@@ -8,7 +8,7 @@ defineProps<FormOptions>();
 </script>
 <template>
   <Head title="Novo chamado" />
-  <Link href="/chamados" class="back-link">
+  <Link href="/workspace/chamados" class="back-link">
     <ArrowLeft :size="16" />
     Voltar para chamados
   </Link>

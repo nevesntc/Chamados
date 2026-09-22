@@ -10,8 +10,10 @@ Leia README.md, docs/arquitetura.md e docs/requisitos.md antes de alterar regras
 - O bloqueio deve ser adquirido antes da leitura da carga. Não mover a seleção para fora da transação.
 - Automático inclui pessoas sem chamados, desempata pelo menor ID e exclui o próprio ticket ao editar.
 - Editar texto não redistribui automaticamente; abertura e ID não vêm do cliente.
+- Usuários entram apenas em workspaces próprios ou por código de convite; consultas, binding de tickets, opções de responsáveis e escritas são limitadas ao workspace ativo.
+- Cadastro cria usuário, workspace, vínculo de dono e responsável real na mesma transação. Seed padrão não cria pessoas fictícias.
 - Não substituir SQLite nem prometer PostgreSQL validado sem executar testes nesse banco.
-- Não adicionar exclusão, autenticação, serviços externos ou novas camadas por hábito; justificar mudanças de escopo.
+- Não adicionar exclusão, serviços externos ou novas camadas por hábito; justificar mudanças de escopo.
 
 ## Organização
 

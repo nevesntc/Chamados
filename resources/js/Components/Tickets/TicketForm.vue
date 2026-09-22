@@ -12,8 +12,8 @@ const form = useForm({
   assignee_id: props.ticket?.assignee_id ?? ('' as number | string),
 });
 function submit() {
-  if (props.ticket) form.put('/chamados/' + props.ticket.id);
-  else form.post('/chamados');
+  if (props.ticket) form.put('/workspace/chamados/' + props.ticket.id);
+  else form.post('/workspace/chamados');
 }
 </script>
 <template>
@@ -183,7 +183,7 @@ function submit() {
       <span>* Campos obrigatórios</span>
       <div>
         <Link
-          :href="ticket ? '/chamados/' + ticket.id : '/chamados'"
+          :href="ticket ? '/workspace/chamados/' + ticket.id : '/workspace/chamados'"
           class="button button-secondary"
         >
           Cancelar

@@ -16,7 +16,7 @@ defineProps<{ ticket: Ticket; statuses: Option[]; priorities: Option[] }>();
 </script>
 <template>
   <Head :title="ticketCode(ticket.id)" />
-  <Link href="/chamados" class="back-link">
+  <Link href="/workspace/chamados" class="back-link">
     <ArrowLeft :size="16" />
     Voltar para chamados
   </Link>
@@ -26,7 +26,7 @@ defineProps<{ ticket: Ticket; statuses: Option[]; priorities: Option[] }>();
       <h1 class="detail-title">{{ ticket.title }}</h1>
       <p class="page-description">Cada atualização aproxima seu pedido de uma solução.</p>
     </div>
-    <Link :href="'/chamados/' + ticket.id + '/edit'" class="button button-primary">
+    <Link :href="'/workspace/chamados/' + ticket.id + '/edit'" class="button button-primary">
       <Pencil :size="16" />
       Editar chamado
     </Link>

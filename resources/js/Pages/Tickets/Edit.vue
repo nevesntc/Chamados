@@ -8,7 +8,7 @@ defineProps<FormOptions & { ticket: Ticket }>();
 </script>
 <template>
   <Head :title="'Editar ' + ticketCode(ticket.id)" />
-  <Link :href="'/chamados/' + ticket.id" class="back-link">
+  <Link :href="'/workspace/chamados/' + ticket.id" class="back-link">
     <ArrowLeft :size="16" />
     Voltar para o chamado
   </Link>

@@ -7,8 +7,9 @@ namespace Tests\Feature\Tickets;
 use App\Enums\TicketStatus;
 use App\Models\Assignee;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Models\Workspace;
 use Database\Seeders\DatabaseSeeder;
-use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -17,15 +18,22 @@ class TicketWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    private int $workspaceId;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->withoutVite();
+        $workspace = Workspace::create(['name' => 'Equipe de teste']);
+        $user = User::factory()->create(['current_workspace_id' => $workspace->id]);
+        $workspace->members()->attach($user->id, ['role' => 'owner']);
+        $this->workspaceId = $workspace->id;
+        $this->actingAs($user);
     }
 
     private function person(string $name = 'Ana'): Assignee
     {
-        return Assignee::create(['name' => $name]);
+        return Assignee::create(['name' => $name, 'workspace_id' => $this->workspaceId]);
     }
 
     private function payload(array $overrides = []): array
@@ -35,24 +43,22 @@ class TicketWorkflowTest extends TestCase
 
     private function ticket(Assignee $person, array $overrides = []): Ticket
     {
-        return Ticket::create(array_replace(['title' => 'Chamado existente', 'description' => 'Descrição do chamado.', 'priority' => 'medium', 'status' => 'open', 'assignee_id' => $person->id], $overrides));
+        return Ticket::create(array_replace(['title' => 'Chamado existente', 'description' => 'Descrição do chamado.', 'priority' => 'medium', 'status' => 'open', 'assignee_id' => $person->id, 'workspace_id' => $this->workspaceId], $overrides));
     }
 
     public function test_root_redirects_and_empty_list_renders(): void
     {
-        $this->get('/')->assertRedirect('/chamados');
-        $this->get('/chamados')->assertOk()->assertInertia(fn (Assert $p) => $p->component('Tickets/Index')->has('tickets.data', 0)->where('summary.total', 0));
-        $this->get('/chamados/create')->assertOk();
+        $this->get('/')->assertRedirect('/workspace');
+        $this->get('/workspace/chamados')->assertOk()->assertInertia(fn (Assert $p) => $p->component('Tickets/Index')->has('tickets.data', 0)->where('summary.total', 0));
+        $this->get('/workspace/chamados/create')->assertOk();
     }
 
-    public function test_seed_is_repeatable_and_provides_three_people(): void
+    public function test_default_seed_is_repeatable_and_creates_no_mock_people(): void
     {
         $this->seed(DatabaseSeeder::class);
         $this->seed(DatabaseSeeder::class);
-        $this->assertDatabaseCount('assignees', 3);
-        $this->seed(DemoSeeder::class);
-        $this->seed(DemoSeeder::class);
-        $this->assertDatabaseCount('tickets', 8);
+        $this->assertDatabaseCount('assignees', 0);
+        $this->assertDatabaseCount('tickets', 0);
     }
 
     public function test_automatic_assignment_includes_zero_workload_and_ignores_completed(): void
@@ -64,7 +70,7 @@ class TicketWorkflowTest extends TestCase
         $this->ticket($bruno, ['status' => 'in_progress']);
         $this->ticket($carla, ['status' => 'resolved']);
         $this->ticket($carla, ['status' => 'closed']);
-        $this->post('/chamados', $this->payload())->assertSessionHasNoErrors()->assertRedirect();
+        $this->post('/workspace/chamados', $this->payload())->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame($carla->id, Ticket::latest('id')->first()->assignee_id);
         $this->assertSame(TicketStatus::Open, Ticket::latest('id')->first()->status);
     }
@@ -73,9 +79,9 @@ class TicketWorkflowTest extends TestCase
     {
         $first = $this->person();
         $second = $this->person('Bruno');
-        $this->post('/chamados', $this->payload())->assertSessionHasNoErrors();
+        $this->post('/workspace/chamados', $this->payload())->assertSessionHasNoErrors();
         $this->assertSame($first->id, Ticket::latest('id')->first()->assignee_id);
-        $this->post('/chamados', $this->payload())->assertSessionHasNoErrors();
+        $this->post('/workspace/chamados', $this->payload())->assertSessionHasNoErrors();
         $this->assertSame($second->id, Ticket::latest('id')->first()->assignee_id);
     }
 
@@ -84,7 +90,7 @@ class TicketWorkflowTest extends TestCase
         $person = $this->person();
         $this->person('Bruno');
         $this->ticket($person);
-        $this->post('/chamados', $this->payload(['assignment_mode' => 'manual', 'assignee_id' => $person->id, 'status' => 'closed', 'created_at' => '2000-01-01', 'id' => 999]))->assertSessionHasNoErrors();
+        $this->post('/workspace/chamados', $this->payload(['assignment_mode' => 'manual', 'assignee_id' => $person->id, 'status' => 'closed', 'created_at' => '2000-01-01', 'id' => 999]))->assertSessionHasNoErrors();
         $ticket = Ticket::latest('id')->first();
         $this->assertSame($person->id, $ticket->assignee_id);
         $this->assertSame(TicketStatus::Open, $ticket->status);
@@ -98,13 +104,13 @@ class TicketWorkflowTest extends TestCase
         $ticket = $this->ticket($person, ['status' => 'resolved']);
         $opening = $ticket->created_at->toISOString();
         $this->travel(2)->hours();
-        $this->put('/chamados/'.$ticket->id, $this->payload(['title' => 'Título atualizado', 'status' => 'open', 'assignment_mode' => 'manual', 'assignee_id' => $person->id, 'created_at' => '2000-01-01']))->assertRedirect('/chamados/'.$ticket->id);
+        $this->put('/workspace/chamados/'.$ticket->id, $this->payload(['title' => 'Título atualizado', 'status' => 'open', 'assignment_mode' => 'manual', 'assignee_id' => $person->id, 'created_at' => '2000-01-01']))->assertRedirect('/workspace/chamados/'.$ticket->id);
         $ticket->refresh();
         $this->assertSame($opening, $ticket->created_at->toISOString());
         $this->assertSame($person->id, $ticket->assignee_id);
         $this->assertSame(1, $person->tickets()->active()->count());
-        $this->get('/chamados/'.$ticket->id)->assertInertia(fn (Assert $p) => $p->component('Tickets/Show')->where('ticket.title', 'Título atualizado'));
-        $this->get('/chamados/'.$ticket->id.'/edit')->assertInertia(fn (Assert $p) => $p->component('Tickets/Edit')->where('ticket.assignee_id', $person->id));
+        $this->get('/workspace/chamados/'.$ticket->id)->assertInertia(fn (Assert $p) => $p->component('Tickets/Show')->where('ticket.title', 'Título atualizado'));
+        $this->get('/workspace/chamados/'.$ticket->id.'/edit')->assertInertia(fn (Assert $p) => $p->component('Tickets/Edit')->where('ticket.assignee_id', $person->id));
     }
 
     public function test_redistribution_excludes_the_edited_ticket(): void
@@ -112,16 +118,16 @@ class TicketWorkflowTest extends TestCase
         $first = $this->person();
         $second = $this->person('Bruno');
         $ticket = $this->ticket($first);
-        $this->put('/chamados/'.$ticket->id, $this->payload(['status' => 'open']))->assertSessionHasNoErrors();
+        $this->put('/workspace/chamados/'.$ticket->id, $this->payload(['status' => 'open']))->assertSessionHasNoErrors();
         $this->assertSame($first->id, $ticket->fresh()->assignee_id);
         $this->ticket($first);
-        $this->put('/chamados/'.$ticket->id, $this->payload(['status' => 'in_progress']))->assertSessionHasNoErrors();
+        $this->put('/workspace/chamados/'.$ticket->id, $this->payload(['status' => 'in_progress']))->assertSessionHasNoErrors();
         $this->assertSame($second->id, $ticket->fresh()->assignee_id);
     }
 
     public function test_no_people_results_in_useful_error_and_no_partial_write(): void
     {
-        $this->from('/chamados/create')->post('/chamados', $this->payload())->assertSessionHasErrors('assignment_mode');
+        $this->from('/workspace/chamados/create')->post('/workspace/chamados', $this->payload())->assertSessionHasErrors('assignment_mode');
         $this->assertDatabaseCount('tickets', 0);
         $this->assertDatabaseHas('ticket_write_locks', ['id' => 1, 'version' => 0]);
     }
@@ -129,10 +135,10 @@ class TicketWorkflowTest extends TestCase
     public function test_invalid_input_is_rejected(): void
     {
         $this->person();
-        $this->post('/chamados', $this->payload(['title' => ' ', 'description' => '', 'priority' => 'urgent', 'assignment_mode' => 'other']))->assertSessionHasErrors(['title', 'description', 'priority', 'assignment_mode']);
-        $this->post('/chamados', $this->payload(['title' => str_repeat('x', 151), 'description' => str_repeat('x', 5001)]))->assertSessionHasErrors(['title', 'description']);
-        $this->post('/chamados', $this->payload(['assignment_mode' => 'manual', 'assignee_id' => 999]))->assertSessionHasErrors('assignee_id');
-        $this->post('/chamados', $this->payload(['assignment_mode' => 'manual']))->assertSessionHasErrors('assignee_id');
+        $this->post('/workspace/chamados', $this->payload(['title' => ' ', 'description' => '', 'priority' => 'urgent', 'assignment_mode' => 'other']))->assertSessionHasErrors(['title', 'description', 'priority', 'assignment_mode']);
+        $this->post('/workspace/chamados', $this->payload(['title' => str_repeat('x', 151), 'description' => str_repeat('x', 5001)]))->assertSessionHasErrors(['title', 'description']);
+        $this->post('/workspace/chamados', $this->payload(['assignment_mode' => 'manual', 'assignee_id' => 999]))->assertSessionHasErrors('assignee_id');
+        $this->post('/workspace/chamados', $this->payload(['assignment_mode' => 'manual']))->assertSessionHasErrors('assignee_id');
         $this->assertDatabaseCount('tickets', 0);
     }
 
@@ -140,7 +146,7 @@ class TicketWorkflowTest extends TestCase
     {
         $person = $this->person();
         $ticket = $this->ticket($person);
-        $this->put('/chamados/'.$ticket->id, $this->payload(['status' => 'unknown']))->assertSessionHasErrors('status');
+        $this->put('/workspace/chamados/'.$ticket->id, $this->payload(['status' => 'unknown']))->assertSessionHasErrors('status');
         $this->assertSame(TicketStatus::Open, $ticket->fresh()->status);
     }
 
@@ -152,7 +158,7 @@ class TicketWorkflowTest extends TestCase
         $this->ticket($other, ['title' => 'Impressora RH', 'priority' => 'high']);
         $this->ticket($person, ['title' => 'Impressora RH', 'priority' => 'high', 'status' => 'resolved']);
         $this->ticket($person, ['title' => 'Computador', 'priority' => 'low']);
-        $this->get('/chamados?search=Impressora&status=open&priority=high&assignee_id='.$person->id)
+        $this->get('/workspace/chamados?search=Impressora&status=open&priority=high&assignee_id='.$person->id)
             ->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.id', $match->id)->where('summary.total', 4)->where('summary.completed', 1));
     }
 
@@ -164,14 +170,14 @@ class TicketWorkflowTest extends TestCase
         for ($i = 0; $i < 22; $i++) {
             $ids[] = $this->ticket($person, ['title' => 'Teste '.$i])->id;
         }
-        $this->get('/chamados?status=open')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 20)->where('tickets.data.0.id', $ids[21])->where('tickets.total', 22)->where('tickets.next_page_url', fn ($url) => str_contains($url, 'status=open')));
-        $this->get('/chamados?status=open&page=2')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2)->where('tickets.data.0.id', $ids[1]));
+        $this->get('/workspace/chamados?status=open')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 20)->where('tickets.data.0.id', $ids[21])->where('tickets.total', 22)->where('tickets.next_page_url', fn ($url) => str_contains($url, 'status=open')));
+        $this->get('/workspace/chamados?status=open&page=2')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2)->where('tickets.data.0.id', $ids[1]));
     }
 
     public function test_missing_ticket_returns_not_found(): void
     {
-        $this->get('/chamados/999')->assertNotFound();
-        $this->get('/chamados/999/edit')->assertNotFound();
+        $this->get('/workspace/chamados/999')->assertNotFound();
+        $this->get('/workspace/chamados/999/edit')->assertNotFound();
     }
 
     public function test_search_treats_wildcards_as_literal_and_accepts_zero(): void
@@ -181,8 +187,8 @@ class TicketWorkflowTest extends TestCase
         $this->ticket($person, ['title' => 'Arquivo_relatorio']);
         $this->ticket($person, ['title' => 'Monitor 0']);
         $this->ticket($person, ['title' => 'Sem coincidência']);
-        $this->get('/chamados?search=%25')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Disco 100% cheio'));
-        $this->get('/chamados?search=_')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Arquivo_relatorio'));
-        $this->get('/chamados?search=0')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2));
+        $this->get('/workspace/chamados?search=%25')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Disco 100% cheio'));
+        $this->get('/workspace/chamados?search=_')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Arquivo_relatorio'));
+        $this->get('/workspace/chamados?search=0')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2));
     }
 }

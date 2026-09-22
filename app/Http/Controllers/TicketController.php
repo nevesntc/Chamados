@@ -23,11 +23,12 @@ class TicketController extends Controller
     public function index(ListTicketsRequest $request): Response
     {
         $filters = $request->safe()->except('page');
-        $counts = Ticket::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $workspaceId = $request->user()->current_workspace_id;
+        $counts = Ticket::query()->where('workspace_id', $workspaceId)->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         return Inertia::render('Tickets/Index', [
             ...$this->formOptions(), 'filters' => $filters,
-            'tickets' => Ticket::query()->with('assignee:id,name')
+            'tickets' => Ticket::query()->where('workspace_id', $workspaceId)->with('assignee:id,name')
                 ->when(filled($filters['search'] ?? null), fn (Builder $q) => $q->whereRaw(
                     "title LIKE ? ESCAPE '!'",
                     ['%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $filters['search']).'%']
@@ -52,7 +53,7 @@ class TicketController extends Controller
 
     public function store(StoreTicketRequest $request, CreateTicket $action): RedirectResponse
     {
-        $ticket = $action->execute($request->validated());
+        $ticket = $action->execute($request->validated(), $request->user()->current_workspace_id);
 
         return to_route('tickets.show', $ticket)->with('success', 'Chamado criado. Sua solicitação já tem um responsável.');
     }
@@ -70,7 +71,7 @@ class TicketController extends Controller
 
     public function update(UpdateTicketRequest $request, Ticket $ticket, UpdateTicket $action): RedirectResponse
     {
-        $action->execute($ticket, $request->validated());
+        $action->execute($ticket, $request->validated(), $request->user()->current_workspace_id);
 
         return to_route('tickets.show', $ticket)->with('success', 'Chamado atualizado com sucesso.');
     }
@@ -78,7 +79,8 @@ class TicketController extends Controller
     private function formOptions(): array
     {
         return [
-            'assignees' => Assignee::query()->withCount(['tickets as active_count' => fn (Builder $q) => $q->active()])
+            'assignees' => Assignee::query()->where('workspace_id', auth()->user()->current_workspace_id)
+                ->withCount(['tickets as active_count' => fn (Builder $q) => $q->active()])
                 ->orderBy('id')->get(['id', 'name']),
             'statuses' => TicketStatus::options(), 'priorities' => TicketPriority::options(),
         ];

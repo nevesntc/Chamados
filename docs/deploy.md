@@ -1,8 +1,8 @@
-# GitHub, Supabase e Cloudflare
+# Publicação: GitHub, Supabase, Vercel e Cloudflare
 
 ## Fluxo de entrega
 
-Push/PR executam Quality: PHP, SQLite/PostgreSQL, frontend, Chromium desktop/celular e imagem Docker. Em Actions, execute **Deploy Cloudflare** na main para repetir a CI e então migrar/publicar. O CD usa environment `production`; configure revisores se desejar aprovação. Não há publicação automática a cada commit.
+Push/PR executam Quality: PHP, SQLite/PostgreSQL, frontend, Chromium desktop/celular e imagem Docker. A Vercel, ligada à main, cria um deploy a cada push; isso não substitui a CI, e migrations devem ser aplicadas antes de publicar código que as exige. Para a opção Cloudflare, execute **Deploy Cloudflare** na main para repetir a CI e então migrar/publicar. Esse CD usa environment `production`.
 
 ## Banco
 
@@ -12,7 +12,7 @@ O endereço direto fornecido exige IPv6, indisponível no teste local. A conexã
 
 DB_SSLMODE=require exige criptografia. Para verificação completa de certificado, provisionar CA e configurar verify-full. DB_SCHEMA=chamados separa o app do public; não exponha esse schema na Data API. Em produção real, use credenciais separadas para migration e runtime com privilégios mínimos.
 
-`php artisan app:prepare-production-database` aceita somente PostgreSQL/schema chamados, cria o schema se necessário e aplica migrations/seed sem apagar dados. Não importa SQLite. Nunca execute PHPUnit ou migrate:fresh no banco remoto de produção.
+`php artisan app:prepare-production-database` aceita somente PostgreSQL/schema chamados, cria o schema se necessário e aplica migrations/seed sem apagar dados. O seed padrão é vazio; pessoas entram pelo cadastro real. Não importa SQLite. Nunca execute PHPUnit ou migrate:fresh no banco remoto de produção.
 
 ## Configuração Cloudflare
 
@@ -38,7 +38,7 @@ DB_DATABASE=postgres, DB_PORT=5432 e DB_SCHEMA=chamados estão no wrangler.jsonc
 
 O workflow valida configurações, constrói a imagem, prepara o schema, migra e publica com Wrangler. Secrets são arquivos temporários ignorados pelo Git/Docker e removidos ao fim. Não são argumentos da linha de comando nem conteúdo da imagem. CI não usa credenciais Supabase: o PostgreSQL de testes é descartável.
 
-A aplicação não possui login. Restrinja acesso na infraestrutura antes de usar dados reais e considere também a URL workers.dev. A presença de um cabeçalho não constitui autenticação. Políticas de acesso e deploy efetivo precisam ser configurados no ambiente.
+A aplicação exige login e isola workspaces. A implantação Cloudflare ainda depende de credenciais e conta correta; proteja também endpoints administrativos da plataforma.
 
 ## Local e operação
 
@@ -52,7 +52,7 @@ npx wrangler dev
 
 Deploy pelo computador: `npx wrangler login`, configure vars e Account ID, prepare o banco e use `npx wrangler deploy --secrets-file caminho-privado.json`. O workflow Actions é preferível por exigir testes.
 
-Após publicação, confira /up, /chamados, criação/edição e persistência após reinício. /up confirma boot, listagem confirma banco. Migrations devem manter compatibilidade com a versão anterior; rollback do Worker não restaura dados. Planeje backups do PostgreSQL.
+Após publicação, confira `/up`, redirecionamento de `/workspace` para `/entrar`, cadastro, equipe por convite, criação/edição e persistência após reinício. `/up` confirma boot, mas não valida login ou banco. Migrations devem manter compatibilidade com a versão anterior; rollback do Worker não restaura dados. Planeje backups do PostgreSQL.
 
 ## Referências
 
@@ -65,10 +65,10 @@ Após publicação, confira /up, /chamados, criação/edição e persistência a
 
 Autorizada como opção pelo usuário. A documentação atual oferece Container Images em beta; vercel.json aponta o serviço app para o mesmo Dockerfile que a CI constrói e testa. Nenhuma cópia do Dockerfile e nenhum runtime PHP comunitário foram adicionados. A porta padrão é 80, já usada pelo Apache.
 
-Importe nevesntc/Chamados na conta Vercel desejada. Configure as variáveis de .env.production.example no ambiente **Production**, com APP_URL final HTTPS, TRUST_PROXY=true, SESSION_DRIVER=database e SESSION_SECURE_COOKIE=true. APP_KEY e DB_PASSWORD são segredos: as configurações GitHub Secrets não são transferidas automaticamente para Vercel. Use os valores privados do ambiente existente, sem colocá-los no repositório.
+O projeto `chamados` na equipe `nevesntcs-projects` está ligado a `nevesntc/Chamados`. Configure as variáveis de `.env.production.example` no ambiente **Production**, com APP_URL final HTTPS, TRUST_PROXY=true, SESSION_DRIVER=database e SESSION_SECURE_COOKIE=true. APP_KEY e DB_PASSWORD são segredos: as configurações GitHub Secrets não são transferidas automaticamente para Vercel. Use os valores privados do ambiente existente, sem colocá-los no repositório.
 
-O schema Supabase já está preparado. Para releases futuros, aplicar migrations incrementais após CI e antes do rollout; não há migration no boot do container. Previews devem usar banco/schema independente, nunca credenciais da produção. Configure Deployment Protection antes de usar dados reais e verifique a cobertura da proteção no plano utilizado.
+O schema Supabase já está preparado. Para esta versão, aplique a migration `2026_09_22_000000_create_workspaces` antes do rollout; não há migration no boot do container. Previews devem usar banco/schema independente, nunca credenciais da produção. A autenticação protege os dados da aplicação; controles da hospedagem continuam sob responsabilidade da conta.
 
-A imagem foi validada no GitHub, mas isso não prova execução na Vercel. A publicação depende de autenticação, configuração do projeto e disponibilidade de Container Images na conta. Depois do deploy, verificar TLS, sessão/CSRF, assets, criação/edição e persistência. Até isso ocorrer, não declarar Vercel validada. O CD Cloudflare continua disponível; não executar dois destinos por padrão.
+A versão anterior do container foi validada na Vercel com listagem e formulário públicos. A versão com autenticação exige novo smoke de TLS, sessão/CSRF, assets, cadastro, login, convite, isolamento, criação/edição e persistência. Registrar o resultado em `validacao.md`. O CD Cloudflare continua disponível; não executar dois destinos por padrão.
 
 [Documentação oficial de Container Images](https://vercel.com/docs/functions/container-images).

@@ -51,7 +51,7 @@ const max = computed(() => Math.max(1, ...props.assignees.map((person) => person
         </p>
       </div>
     </div>
-    <Link href="/chamados/create" class="workload-link">
+    <Link href="/workspace/chamados/create" class="workload-link">
       Criar com atribuição automática
       <ArrowRight :size="15" />
     </Link>

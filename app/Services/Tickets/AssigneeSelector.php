@@ -11,9 +11,9 @@ use Illuminate\Validation\ValidationException;
 class AssigneeSelector
 {
     /** Selection must run inside the same write transaction as persistence. */
-    public function select(?int $excludingTicketId = null): int
+    public function select(int $workspaceId, ?int $excludingTicketId = null): int
     {
-        $assignee = Assignee::query()
+        $assignee = Assignee::query()->where('workspace_id', $workspaceId)
             ->withCount(['tickets as active_count' => fn (Builder $query) => $query->active()
                 ->when($excludingTicketId, fn (Builder $query) => $query->where('id', '!=', $excludingTicketId))])
             ->orderBy('active_count')->orderBy('id')->first();

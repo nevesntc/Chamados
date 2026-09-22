@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureCurrentWorkspace;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
         }
         $middleware->web(append: [HandleInertiaRequests::class]);
+        $middleware->alias(['workspace' => EnsureCurrentWorkspace::class]);
+        $middleware->redirectUsersTo('/workspace');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

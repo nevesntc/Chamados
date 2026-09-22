@@ -8,7 +8,7 @@ createInertiaApp({
   resolve: (name) => {
     const page = pages[`./Pages/${name}.vue`];
     const component = page.default;
-    component.layout = AppLayout;
+    if (!name.startsWith('Auth/')) component.layout = AppLayout;
     return component;
   },
   setup({ el, App, props, plugin }) {

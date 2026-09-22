@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { onMounted, onUnmounted } from 'vue';
 import {
   Plus,
   Ticket,
@@ -32,6 +33,13 @@ defineProps<
     summary: { total: number; open: number; in_progress: number; completed: number };
   }
 >();
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  refreshTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') router.reload({ only: ['tickets', 'summary', 'assignees'] });
+  }, 10000);
+});
+onUnmounted(() => clearInterval(refreshTimer));
 </script>
 <template>
   <Head title="Chamados" />
@@ -44,7 +52,7 @@ defineProps<
       </h1>
       <p class="page-description">Menos pedidos perdidos. Mais soluções, juntos.</p>
     </div>
-    <Link href="/chamados/create" class="button button-primary">
+    <Link href="/workspace/chamados/create" class="button button-primary">
       <Plus :size="18" />
       Novo chamado
     </Link>
@@ -128,7 +136,7 @@ defineProps<
           <tbody>
             <tr v-for="ticket in tickets.data" :key="ticket.id">
               <td>
-                <Link :href="'/chamados/' + ticket.id" class="ticket-title-link">
+                <Link :href="'/workspace/chamados/' + ticket.id" class="ticket-title-link">
                   <span class="ticket-code">{{ ticketCode(ticket.id) }}</span>
                   <strong>{{ ticket.title }}</strong>
                 </Link>
@@ -149,7 +157,7 @@ defineProps<
               <td class="date-cell">{{ formatDate(ticket.created_at) }}</td>
               <td>
                 <Link
-                  :href="'/chamados/' + ticket.id"
+                  :href="'/workspace/chamados/' + ticket.id"
                   class="row-arrow"
                   :aria-label="'Ver ' + ticketCode(ticket.id)"
                 >
@@ -178,7 +186,7 @@ defineProps<
         </p>
         <Link
           v-if="!Object.values(filters).some(Boolean)"
-          href="/chamados/create"
+          href="/workspace/chamados/create"
           class="button button-primary"
         >
           <Plus :size="16" />
@@ -220,7 +228,7 @@ defineProps<
         <Sparkles :size="20" />
         <h3>Um fluxo mais leve.</h3>
         <p>Do primeiro pedido à solução: cada chamado tem um lugar e alguém para cuidar.</p>
-        <Link href="/chamados/create">
+        <Link href="/workspace/chamados/create">
           Vamos começar
           <ArrowRight :size="15" />
         </Link>

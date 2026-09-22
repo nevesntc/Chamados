@@ -12,7 +12,7 @@ class StoreTicketRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Local demonstration; authentication is outside this version's scope.
+        return $this->user()?->current_workspace_id !== null;
     }
 
     public function rules(): array
@@ -22,7 +22,7 @@ class StoreTicketRequest extends FormRequest
             'description' => ['required', 'string', 'max:5000'],
             'priority' => ['required', Rule::enum(TicketPriority::class)],
             'assignment_mode' => ['required', Rule::in(['automatic', 'manual'])],
-            'assignee_id' => ['exclude_unless:assignment_mode,manual', 'required', 'integer', 'exists:assignees,id'],
+            'assignee_id' => ['exclude_unless:assignment_mode,manual', 'required', 'integer', Rule::exists('assignees', 'id')->where('workspace_id', $this->user()?->current_workspace_id)],
         ];
     }
 }

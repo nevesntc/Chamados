@@ -13,13 +13,14 @@ class CreateTicket
 {
     public function __construct(private AssigneeSelector $selector, private TicketWriteTransaction $transaction) {}
 
-    public function execute(array $data): Ticket
+    public function execute(array $data, int $workspaceId): Ticket
     {
         return $this->transaction->run(fn () => Ticket::create([
             'title' => $data['title'], 'description' => $data['description'],
+            'workspace_id' => $workspaceId,
             'priority' => $data['priority'], 'status' => TicketStatus::Open,
             'assignee_id' => $data['assignment_mode'] === 'automatic'
-                ? $this->selector->select() : $data['assignee_id'],
+                ? $this->selector->select($workspaceId) : $data['assignee_id'],
         ]));
     }
 }

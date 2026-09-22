@@ -1,6 +1,14 @@
 # Evidências de validação
 
-Data: 21/09/2026. Escopo: primeira versão local. Resultados observados, sem promessa de ausência absoluta de bugs.
+Histórico iniciado em 21/09/2026. As seções antigas registram verificações da versão pública sem login e não descrevem o estado atual. Resultados observados, sem promessa de ausência absoluta de bugs.
+
+## Versão com cadastro e workspace privado — 22/09/2026
+
+- `php artisan test` com PHPRC do projeto: 22 testes, 267 assertions, aprovados em SQLite. Inclui cadastro, login/logout, senha, convite, isolamento e concorrência real com dois processos.
+- `php vendor/bin/pint --test`, `npm run lint`, `npm run typecheck` e `npm run build`: aprovados após formatação final.
+- Playwright local: fluxo completo de cadastro, estado vazio, criação, edição, resolução, abas Equipe/Perfil, logout, erro de senha e login passou em Chromium desktop e celular com banco SQLite temporário, `VIEW_COMPILED_PATH` em `%TEMP%` e sessão no banco. O teste móvel também conferiu menu por teclado e revelou que o rodapé da sidebar não era alcançável em tela curta; `overflow-y: auto` corrigiu isso. O processo Playwright no Windows ficou aberto após exibir os testes aprovados e foi encerrado manualmente; a CI Linux fará a verificação definitiva.
+- Cadastro e lista vazia renderizaram após isolar diretórios temporários. A execução local do servidor PHP sob o sandbox do Windows não tinha escrita em `storage/framework/views`; a configuração temporária foi usada apenas no teste. O container de produção já configura permissões de cache no entrypoint.
+- Migration `2026_09_22_000000_create_workspaces`: aplicada no SQLite local e no schema `chamados` do Supabase PostgreSQL 17.6. Antes da limpeza remota: 0 chamados, 0 usuários e exatamente três responsáveis demonstrativos. Uma transação com verificação de nomes, quantidade e vínculos removeu só essas três linhas. CI remota e deploy desta revisão ainda não verificados neste ponto do registro.
 
 ## Ambiente
 
