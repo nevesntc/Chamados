@@ -21,7 +21,7 @@ Aplicação web para organizar solicitações internas, acompanhar o atendimento
 
 O projeto usa contas reais, sem usuários ou responsáveis fictícios no seed padrão. Cada workspace isola seus chamados e membros. Repositório: [nevesntc/Chamados](https://github.com/nevesntc/Chamados). A comunicação aos avaliadores cabe ao candidato; consulte [a matriz de requisitos](docs/requisitos.md).
 
-Versão publicada: [Central de Chamados](https://chamados-smoky-beta.vercel.app). O projeto Vercel foi renomeado para `central-de-chamados`; o domínio novo está protegido pelo SSO da plataforma e depende de liberação específica para ficar acessível ao público. O login próprio da aplicação já está ativo no domínio publicado.
+Versão publicada: [Central de Chamados](https://central-de-chamados-neves.vercel.app). Esse domínio foi liberado individualmente na Vercel para permitir cadastro público; os chamados continuam protegidos pelo login da aplicação. O alias público antigo foi removido, e as URLs de deployment da Vercel permanecem sob SSO da plataforma.
 
 ## Pré-requisitos
 

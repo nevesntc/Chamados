@@ -39,4 +39,4 @@ Não incluir PDF, texto colado, credenciais ou bancos locais na publicação.
 
 CI com PostgreSQL/SQLite, PHP 8.3/8.4, navegador e Docker. CD manual Cloudflare. Supabase com TLS/schema; conexão pelo Session pooler verificada; migrations e seed aplicados no schema dedicado. Ver [deploy](deploy.md) e [validação](validacao.md).
 
-Vercel: projeto ligado ao GitHub, Container Image com autenticação publicada e migration aplicada. Domínio público existente: [Central de Chamados](https://chamados-smoky-beta.vercel.app). O alias novo depende de exceção SSO autorizada. Ver [validação](validacao.md).
+Vercel: projeto ligado ao GitHub, Container Image com autenticação publicada e migration aplicada. Domínio público principal: [Central de Chamados](https://central-de-chamados-neves.vercel.app). Cadastro, login, chamado e persistência foram conferidos nesse endereço; veja [validação](validacao.md).

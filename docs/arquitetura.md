@@ -90,6 +90,8 @@ O usuário autorizou Vercel se simplificar a publicação. `vercel.json` reutili
 
 O Dockerfile normaliza leitura/travessia do código recebido por upload. O entrypoint fixa umask e atribui ao usuário Apache os caches gerados na inicialização; não depende do umask do provedor. O smoke da CI inicializa com umask 077 para verificar esse caso.
 
+O domínio `central-de-chamados-neves.vercel.app` foi adicionado ao projeto como domínio público específico, com autorização do usuário. O alias público antigo `chamados-smoky-beta.vercel.app` foi removido. A configuração SSO `all_except_custom_domains` continua protegendo as URLs de deployment; somente o domínio novo permite visitantes chegarem ao cadastro. `APP_URL` aponta para ele para manter sessões e redirecionamentos no mesmo host.
+
 ## ADR-009 — Rotas e atualização da interface
 
 URLs de trabalho ficam em `/workspace`, `/workspace/chamados`, `/workspace/equipe` e `/workspace/perfil`; `/chamados` redireciona para a nova lista. Cadastro e login ficam em `/cadastro` e `/entrar`. Inertia mantém rotas no Laravel; não há Vue Router nem API duplicada.
