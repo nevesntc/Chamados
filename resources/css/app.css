@@ -1141,6 +1141,7 @@ h2 {
   background: #6656db;
 }
 .auth-intro h1 {
+  color: #fff;
   font-size: clamp(36px, 4vw, 58px);
   line-height: 1.08;
   letter-spacing: -2px;

@@ -65,7 +65,9 @@ Após publicação, confira `/up`, redirecionamento de `/workspace` para `/entra
 
 Autorizada como opção pelo usuário. A documentação atual oferece Container Images em beta; vercel.json aponta o serviço app para o mesmo Dockerfile que a CI constrói e testa. Nenhuma cópia do Dockerfile e nenhum runtime PHP comunitário foram adicionados. A porta padrão é 80, já usada pelo Apache.
 
-O projeto `chamados` na equipe `nevesntcs-projects` está ligado a `nevesntc/Chamados`. Configure as variáveis de `.env.production.example` no ambiente **Production**, com APP_URL final HTTPS, TRUST_PROXY=true, SESSION_DRIVER=database e SESSION_SECURE_COOKIE=true. APP_KEY e DB_PASSWORD são segredos: as configurações GitHub Secrets não são transferidas automaticamente para Vercel. Use os valores privados do ambiente existente, sem colocá-los no repositório.
+O projeto `central-de-chamados` na equipe `nevesntcs-projects` está ligado a `nevesntc/Chamados`. Configure as variáveis de `.env.production.example` no ambiente **Production**, com APP_URL final HTTPS, TRUST_PROXY=true, SESSION_DRIVER=database e SESSION_SECURE_COOKIE=true. APP_KEY e DB_PASSWORD são segredos: as configurações GitHub Secrets não são transferidas automaticamente para Vercel. Use os valores privados do ambiente existente, sem colocá-los no repositório.
+
+O projeto agora se chama `central-de-chamados`, com o mesmo ID e vínculo GitHub. `https://chamados-smoky-beta.vercel.app` é o domínio público existente e permanece como APP_URL. O alias novo `central-de-chamados-neves.vercel.app` existe, mas a proteção SSO da Vercel redireciona visitantes para login da plataforma. Torná-lo público exigirá uma mudança explícita de acesso no projeto; não desative o SSO global automaticamente.
 
 O schema Supabase já está preparado. Para esta versão, aplique a migration `2026_09_22_000000_create_workspaces` antes do rollout; não há migration no boot do container. Previews devem usar banco/schema independente, nunca credenciais da produção. A autenticação protege os dados da aplicação; controles da hospedagem continuam sob responsabilidade da conta.
 

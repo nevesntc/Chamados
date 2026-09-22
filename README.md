@@ -21,6 +21,8 @@ Aplicação web para organizar solicitações internas, acompanhar o atendimento
 
 O projeto usa contas reais, sem usuários ou responsáveis fictícios no seed padrão. Cada workspace isola seus chamados e membros. Repositório: [nevesntc/Chamados](https://github.com/nevesntc/Chamados). A comunicação aos avaliadores cabe ao candidato; consulte [a matriz de requisitos](docs/requisitos.md).
 
+Versão publicada: [Central de Chamados](https://chamados-smoky-beta.vercel.app). O projeto Vercel foi renomeado para `central-de-chamados`; o domínio novo está protegido pelo SSO da plataforma e depende de liberação específica para ficar acessível ao público. O login próprio da aplicação já está ativo no domínio publicado.
+
 ## Pré-requisitos
 
 - PHP 8.3 ou superior com extensões do Laravel, incluindo ctype, curl, dom, fileinfo, filter, hash, mbstring, openssl, pcre, PDO, pdo_sqlite, session, tokenizer e XML. ZIP facilita a instalação pelo Composer.

@@ -17,8 +17,8 @@ Esta matriz resume os requisitos com redação própria; não reproduz o documen
 | 5.1 | Lista de chamados | Index.vue, paginação e detalhes | Implementado |
 | 5.2 | Organização útil ao trabalho | Busca, filtros, prioridades e carga por responsável | Implementado |
 | 6.1–6.2 | Execução local reproduzível | SQLite, migrations sem dados fictícios e comandos README | Implementado; evidência em validacao.md |
-| Adicional | Cadastro, login e logout | Sessão Laravel, hash de senha, CSRF e limite de tentativas | Implementado; CI desta revisão pendente |
-| Adicional | Workspace privado, equipe e perfil | Convite temporário, escopo por workspace, rotas próprias e troca de equipe | Implementado; CI desta revisão pendente |
+| Adicional | Cadastro, login e logout | Sessão Laravel, hash de senha, CSRF e limite de tentativas | Implementado; [CI aprovada](https://github.com/nevesntc/Chamados/actions/runs/35775044139) |
+| Adicional | Workspace privado, equipe e perfil | Convite temporário, escopo por workspace, rotas próprias e troca de equipe | Implementado; [CI aprovada](https://github.com/nevesntc/Chamados/actions/runs/35775044139) |
 | Fundamentos | Testes, componentização e manutenção | PHPUnit, tipos, lint, Pint e formulário compartilhado | Implementado |
 | Estilos | Framework CSS moderno e interface organizada | Tailwind 4, CSS da aplicação, Lucide | Implementado |
 | Referências | Bibliotecas e fontes informadas | Seção de referências no README | Implementado |
@@ -39,4 +39,4 @@ Não incluir PDF, texto colado, credenciais ou bancos locais na publicação.
 
 CI com PostgreSQL/SQLite, PHP 8.3/8.4, navegador e Docker. CD manual Cloudflare. Supabase com TLS/schema; conexão pelo Session pooler verificada; migrations e seed aplicados no schema dedicado. Ver [deploy](deploy.md) e [validação](validacao.md).
 
-Vercel: projeto ligado ao GitHub, Container Image publicada e acesso HTTP verificado na versão anterior. A atualização com autenticação requer migration, CI e smoke da versão nova; ver [validação](validacao.md).
+Vercel: projeto ligado ao GitHub, Container Image com autenticação publicada e migration aplicada. Domínio público existente: [Central de Chamados](https://chamados-smoky-beta.vercel.app). O alias novo depende de exceção SSO autorizada. Ver [validação](validacao.md).
