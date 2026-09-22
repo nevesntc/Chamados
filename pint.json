@@ -1,0 +1,1 @@
+{ "preset": "laravel", "exclude": ["tmp", ".tools"], "rules": { "declare_strict_types": true } }

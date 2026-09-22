@@ -1,0 +1,118 @@
+name: Quality
+on:
+  push:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4']
+        database: [sqlite, pgsql]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: chamados_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test -d chamados_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_CONNECTION: ${{ matrix.database }}
+      DB_DATABASE: ${{ matrix.database == 'pgsql' && 'chamados_test' || ':memory:' }}
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: test
+      DB_PASSWORD: test
+      DB_SSLMODE: disable
+      DB_SCHEMA: public
+      DB_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_sqlite, pdo_pgsql, sqlite3, dom, fileinfo, curl, zip
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test
+      - run: php vendor/bin/pint --test
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm run build
+      - name: Worker types
+        run: |
+          printf 'APP_KEY=""\nDB_PASSWORD=""\n' > .dev.vars
+          npm run cf:typecheck
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer run setup
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+  container:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: chamados_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U test -d chamados_test" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t chamados:test .
+      - name: Boot and check real image
+        run: |
+          cat > /tmp/container.env <<EOF
+          APP_KEY=base64:$(openssl rand -base64 32)
+          APP_URL=http://127.0.0.1
+          DB_CONNECTION=pgsql
+          DB_HOST=127.0.0.1
+          DB_DATABASE=chamados_test
+          DB_USERNAME=test
+          DB_PASSWORD=test
+          DB_SSLMODE=disable
+          SESSION_DRIVER=database
+          CACHE_STORE=array
+          EOF
+          docker run --rm --network host --env-file /tmp/container.env --entrypoint php chamados:test artisan migrate --seed --force
+          docker run -d --name chamados --network host --env-file /tmp/container.env chamados:test
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1/chamados > /tmp/page.html; then break; fi
+            sleep 2
+          done
+          grep -q 'data-page=' /tmp/page.html
+      - run: docker logs chamados
+        if: failure()
