@@ -159,11 +159,13 @@ class TicketWorkflowTest extends TestCase
     public function test_pagination_is_stable_and_preserves_filters(): void
     {
         $person = $this->person();
+        $this->freezeTime();
+        $ids = [];
         for ($i = 0; $i < 22; $i++) {
-            $this->ticket($person, ['title' => 'Teste '.$i]);
+            $ids[] = $this->ticket($person, ['title' => 'Teste '.$i])->id;
         }
-        $this->get('/chamados?status=open')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 20)->where('tickets.data.0.id', 22)->where('tickets.total', 22)->where('tickets.next_page_url', fn ($url) => str_contains($url, 'status=open')));
-        $this->get('/chamados?status=open&page=2')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2)->where('tickets.data.0.id', 2));
+        $this->get('/chamados?status=open')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 20)->where('tickets.data.0.id', $ids[21])->where('tickets.total', 22)->where('tickets.next_page_url', fn ($url) => str_contains($url, 'status=open')));
+        $this->get('/chamados?status=open&page=2')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2)->where('tickets.data.0.id', $ids[1]));
     }
 
     public function test_missing_ticket_returns_not_found(): void
