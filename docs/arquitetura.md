@@ -30,7 +30,7 @@ O formulário é compartilhado entre criação e edição. Filtros, indicadores 
 
 **Trade-off:** serializamos todas as escritas de chamados. É apropriado ao tamanho do desafio, mas limita throughput. Não realizar I/O externo dentro dessa transação.
 
-**Evolução PostgreSQL/Supabase:** configurar PDO/TLS, migrar dados e sequências, revisar constraints e busca, validar o isolamento e repetir os testes de concorrência no PostgreSQL. É possível reusar a linha de coordenação com bloqueio transacional, mas isso precisa ser demonstrado no banco escolhido. Migrations criam estrutura; não migram automaticamente registros de SQLite.
+**PostgreSQL/Supabase:** configuração e teste concorrente foram acrescentados na ADR-007. Consulte validacao.md para resultados reais de CI e situação da conexão Supabase. Migrations criam estrutura; não migram automaticamente registros de SQLite.
 
 ## ADR-004 — Regras e desempate
 

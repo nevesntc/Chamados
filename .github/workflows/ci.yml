@@ -104,10 +104,11 @@ jobs:
           DB_USERNAME=test
           DB_PASSWORD=test
           DB_SSLMODE=disable
+          DB_SCHEMA=chamados
           SESSION_DRIVER=database
           CACHE_STORE=array
           EOF
-          docker run --rm --network host --env-file /tmp/container.env --entrypoint php chamados:test artisan migrate --seed --force
+          docker run --rm --network host --env-file /tmp/container.env --entrypoint php chamados:test artisan app:prepare-production-database
           docker run -d --name chamados --network host --env-file /tmp/container.env chamados:test
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1/chamados > /tmp/page.html; then break; fi

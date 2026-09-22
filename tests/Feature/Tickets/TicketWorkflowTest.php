@@ -178,7 +178,7 @@ class TicketWorkflowTest extends TestCase
         $this->ticket($person, ['title' => 'Disco 100% cheio']);
         $this->ticket($person, ['title' => 'Arquivo_relatorio']);
         $this->ticket($person, ['title' => 'Monitor 0']);
-        $this->ticket($person, ['title' => 'Sem coincidência']);
+        $this->ticket($person, ['title' => 'Sem coincidÃªncia']);
         $this->get('/chamados?search=%25')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Disco 100% cheio'));
         $this->get('/chamados?search=_')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 1)->where('tickets.data.0.title', 'Arquivo_relatorio'));
         $this->get('/chamados?search=0')->assertInertia(fn (Assert $p) => $p->has('tickets.data', 2));
