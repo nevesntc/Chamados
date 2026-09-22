@@ -111,3 +111,7 @@ Após receber os parâmetros Session pooler, conexão TLS ao Supabase PostgreSQL
 GitHub environment production criado, secrets APP_KEY/DB_PASSWORD e variables DB_HOST/DB_USERNAME configurados. Credenciais locais ficam em .env.supabase ignorado; nenhum segredo é parte do código ou imagem. Cloudflare: sessão local encontrada em conta diferente da solicitada. A publicação permanece pendente de Account ID correto, token da conta e URL final. Não houve deploy, contratação de plano ou ativação de acesso público à aplicação.
 
 A interrupção temporária da revisão automática de permissões foi resolvida após a orientação do usuário para continuar; não houve contorno da revisão.
+
+### Alternativa Vercel
+
+CI da revisão documental 92097bd também aprovada: https://github.com/nevesntc/Chamados/actions/runs/35736539964. vercel.json foi validado com o schema oficial https://openapi.vercel.sh/vercel.json, reutilizando o Dockerfile testado. CLI Vercel 59.25.0 disponível, inicialmente sem sessão; publicação depende do login do usuário e configuração do projeto. Nenhum deploy Vercel validado ainda.

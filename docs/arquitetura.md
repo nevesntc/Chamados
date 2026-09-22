@@ -76,3 +76,7 @@ A coordenação PostgreSQL usa o mesmo incremento antes da leitura, sob READ COM
 CD manual na main, environment production e CI obrigatória. Secrets passam por arquivos temporários ignorados pelo Git e Docker, removidos ao fim do job. Migrations antecedem rollout, nunca rodam no boot. Mudanças de schema precisam ser retrocompatíveis: rollback de código não reverte dados.
 
 Não adicionamos login. Controle de acesso na infraestrutura deve preceder uso real. Publicação efetiva depende de credenciais Cloudflare e conexão Supabase alcançável. Consulte deploy.md e validacao.md.
+
+## ADR-008 — Vercel como alternativa de hospedagem
+
+O usuário autorizou Vercel se simplificar a publicação. A documentação atual suporta Container Images em beta. vercel.json reutiliza o Dockerfile existente através de Services, mantendo Laravel, Postgres e sessões externas. Evitamos duplicar imagens ou mudar o produto para outra stack. Configuração adicionada, mas execução no provedor só pode ser considerada validada após deploy e smoke test autenticados. A opção Cloudflare permanece; não há publicação dupla automática.

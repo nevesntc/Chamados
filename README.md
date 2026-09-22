@@ -161,6 +161,8 @@ A estrutura é **Cloudflare Worker → container PHP/Apache → Supabase**. PHP 
 
 A configuração aceita schema dedicado e TLS. A suíte e a concorrência real passaram na CI com PostgreSQL 17. O Supabase PostgreSQL 17.6 também recebeu migrations e seed por Session pooler com TLS; os testes destrutivos não rodam nele. Veja [evidências](docs/validacao.md).
 
+A alternativa Vercel usa o mesmo Dockerfile por Container Images (beta), configurado em vercel.json. Ainda exige validação no provedor após autenticação.
+
 Siga [o guia de publicação](docs/deploy.md) para configurar segredos, conexão e CD manual. Migrations não importam registros do SQLite. A aplicação continua sem login; restrinja acesso antes de usar dados reais.
 
 ## Qualidade e testes

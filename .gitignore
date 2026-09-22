@@ -41,3 +41,5 @@ Thumbs.db
 worker-configuration.d.ts
 
 .secrets*.json
+
+.vercel/

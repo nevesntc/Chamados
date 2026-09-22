@@ -36,3 +36,5 @@ Não incluir PDF, texto colado, credenciais ou bancos locais na publicação.
 ## Escopo adicional
 
 CI com PostgreSQL/SQLite, PHP 8.3/8.4, navegador e Docker. CD manual Cloudflare. Supabase com TLS/schema; conexão pelo Session pooler verificada; migrations e seed aplicados no schema dedicado. Ver [deploy](deploy.md) e [validação](validacao.md).
+
+Vercel: alternativa configurada com o mesmo Dockerfile, dependente de autenticação e validação no provedor.

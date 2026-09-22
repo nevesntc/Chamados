@@ -60,3 +60,15 @@ Após publicação, confira /up, /chamados, criação/edição e persistência a
 - [Segredos](https://developers.cloudflare.com/containers/examples/env-vars-and-secrets/)
 - [Preços](https://developers.cloudflare.com/containers/pricing/)
 - [Conexão Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres)
+
+## Alternativa Vercel
+
+Autorizada como opção pelo usuário. A documentação atual oferece Container Images em beta; vercel.json aponta o serviço app para o mesmo Dockerfile que a CI constrói e testa. Nenhuma cópia do Dockerfile e nenhum runtime PHP comunitário foram adicionados. A porta padrão é 80, já usada pelo Apache.
+
+Importe nevesntc/Chamados na conta Vercel desejada. Configure as variáveis de .env.production.example no ambiente **Production**, com APP_URL final HTTPS, TRUST_PROXY=true, SESSION_DRIVER=database e SESSION_SECURE_COOKIE=true. APP_KEY e DB_PASSWORD são segredos: as configurações GitHub Secrets não são transferidas automaticamente para Vercel. Use os valores privados do ambiente existente, sem colocá-los no repositório.
+
+O schema Supabase já está preparado. Para releases futuros, aplicar migrations incrementais após CI e antes do rollout; não há migration no boot do container. Previews devem usar banco/schema independente, nunca credenciais da produção. Configure Deployment Protection antes de usar dados reais e verifique a cobertura da proteção no plano utilizado.
+
+A imagem foi validada no GitHub, mas isso não prova execução na Vercel. A publicação depende de autenticação, configuração do projeto e disponibilidade de Container Images na conta. Depois do deploy, verificar TLS, sessão/CSRF, assets, criação/edição e persistência. Até isso ocorrer, não declarar Vercel validada. O CD Cloudflare continua disponível; não executar dois destinos por padrão.
+
+[Documentação oficial de Container Images](https://vercel.com/docs/functions/container-images).

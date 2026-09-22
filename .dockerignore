@@ -18,3 +18,5 @@ playwright-report
 .wrangler
 
 .secrets*.json
+
+.vercel
