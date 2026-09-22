@@ -90,3 +90,24 @@ Executados localmente: PHPUnit 16 testes/171 assertions com PHPRC local; Pint; E
 Infraestrutura adicionada: matriz PostgreSQL 17/SQLite e PHP 8.3/8.4; Chromium desktop/celular; Docker com smoke HTTP; CD manual condicionado à CI. Resultados remotos serão registrados após a execução.
 
 Supabase: DNS retorna apenas IPv6; conexão TCP indisponível nesta rede. Nenhuma credencial transmitida nem migration executada no projeto remoto. Session pooler solicitado. Docker local instalado, daemon inativo. Account ID Cloudflare recebido incompleto; token não fornecido. Deploy não executado.
+
+### Resultado final da ampliação
+
+[CI Quality aprovada](https://github.com/nevesntc/Chamados/actions/runs/35685673239), commit `8855443`:
+
+- PHP 8.3 + SQLite: aprovado.
+- PHP 8.4 + SQLite: aprovado.
+- PHP 8.3 + PostgreSQL 17: aprovado.
+- PHP 8.4 + PostgreSQL 17: aprovado.
+- Chromium desktop/celular: ambos os fluxos de criação, detalhe e resolução aprovados.
+- Docker: imagem PHP/Apache construída, schema dedicado preparado, migrations/seed aplicados e resposta Inertia de /chamados conferida contra PostgreSQL real do job.
+
+O teste de concorrência realmente usa dois processos em ambos os bancos. A primeira rodada PostgreSQL revelou uma expectativa indevida de IDs reiniciados após rollback e um fixture com texto fora de UTF-8; ambos foram corrigidos. Não houve remoção de asserts para mascarar a diferença: a paginação compara os IDs efetivamente criados, com relógio congelado.
+
+Wrangler 4.136.1: geração de tipos, TypeScript e `wrangler deploy --dry-run --containers-rollout none` aprovados. Esse dry-run compila o Worker sem publicar ou construir container; a imagem foi verificada no job Docker. Revisão dos 118 arquivos versionados confirmou UTF-8 válido e nenhuma ocorrência dos padrões de credenciais examinados; isso não equivale a auditoria de segurança completa.
+
+Após receber os parâmetros Session pooler, conexão TLS ao Supabase PostgreSQL 17.6 confirmada. Schema chamados inicialmente ausente; comando app:prepare-production-database criou estrutura e executou seed. Verificação posterior: 3 responsáveis, 0 tickets, 1 linha de coordenação. Nenhum teste destrutivo foi executado no Supabase e nenhum outro schema foi migrado. O SQLite local foi preservado.
+
+GitHub environment production criado, secrets APP_KEY/DB_PASSWORD e variables DB_HOST/DB_USERNAME configurados. Credenciais locais ficam em .env.supabase ignorado; nenhum segredo é parte do código ou imagem. Cloudflare: sessão local encontrada em conta diferente da solicitada. A publicação permanece pendente de Account ID correto, token da conta e URL final. Não houve deploy, contratação de plano ou ativação de acesso público à aplicação.
+
+A interrupção temporária da revisão automática de permissões foi resolvida após a orientação do usuário para continuar; não houve contorno da revisão.

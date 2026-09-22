@@ -4,7 +4,7 @@ Esta matriz resume os requisitos com redação própria; não reproduz o documen
 
 | Item | Critério | Implementação / evidência | Estado |
 | --- | --- | --- | --- |
-| 1.0 | GitHub e acesso da equipe | [Repositório](https://github.com/nevesntc/Chamados); envio aos avaliadores pelo candidato | Publicação em andamento |
+| 1.0 | GitHub e acesso da equipe | [Repositório](https://github.com/nevesntc/Chamados); envio aos avaliadores pelo candidato | Publicado; envio aos avaliadores pendente |
 | 1.1 | README com instalação e execução | Setup rápido, manual e Windows; dados e testes | Implementado |
 | 1.2 | Justificativas técnicas e arquiteturais | README e arquitetura.md | Implementado |
 | 2.1 | Criar, editar, listar e visualizar | TicketController, Actions e quatro páginas Vue | Implementado |
@@ -24,7 +24,7 @@ Esta matriz resume os requisitos com redação própria; não reproduz o documen
 ## Antes de enviar
 
 - [x] Repositório informado pelo usuário: nevesntc/Chamados, público.
-- [ ] Executar a CI remota e conferir o resultado.
+- [x] CI remota aprovada: PHP 8.3/8.4, SQLite/PostgreSQL, navegador e Docker.
 - [ ] Conceder acesso se o repositório for privado.
 - [ ] Revisar README e demonstrar o fluxo completo em instalação limpa.
 - [ ] Enviar o link aos avaliadores pelo canal combinado.
@@ -35,4 +35,4 @@ Não incluir PDF, texto colado, credenciais ou bancos locais na publicação.
 
 ## Escopo adicional
 
-CI com PostgreSQL/SQLite, PHP 8.3/8.4, navegador e Docker. CD manual Cloudflare. Supabase com TLS/schema; conexão específica depende de rede acessível. Ver [deploy](deploy.md) e [validação](validacao.md).
+CI com PostgreSQL/SQLite, PHP 8.3/8.4, navegador e Docker. CD manual Cloudflare. Supabase com TLS/schema; conexão pelo Session pooler verificada; migrations e seed aplicados no schema dedicado. Ver [deploy](deploy.md) e [validação](validacao.md).

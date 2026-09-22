@@ -8,7 +8,7 @@ Push/PR executam Quality: PHP, SQLite/PostgreSQL, frontend, Chromium desktop/cel
 
 SQLite continua padrão local. `.env.production.example` documenta PostgreSQL. Credenciais ficam apenas no servidor, nunca em VITE_ ou Vue.
 
-O endereço direto fornecido exige IPv6, indisponível no teste local. Em **Connect → Session pooler**, copie host e usuário exatos, porta 5432. Não adivinhe região. Para migrations, não usar transaction pooling.
+O endereço direto fornecido exige IPv6, indisponível no teste local. A conexão pelo Session pooler foi validada e o schema foi inicializado em 2026-09-22. Em **Connect → Session pooler**, copie host e usuário exatos, porta 5432. Não adivinhe região. Para migrations, não usar transaction pooling.
 
 DB_SSLMODE=require exige criptografia. Para verificação completa de certificado, provisionar CA e configurar verify-full. DB_SCHEMA=chamados separa o app do public; não exponha esse schema na Data API. Em produção real, use credenciais separadas para migration e runtime com privilégios mínimos.
 
@@ -20,7 +20,9 @@ PHP executa em Cloudflare Containers atrás de Worker. Verifique Workers Paid/co
 
 O Account ID enviado tinha 31 caracteres: confirmar o valor completo com 32. Não foi colocado no código.
 
-No GitHub, configure environment **production**:
+O environment **production** já existe. APP_KEY, DB_PASSWORD, DB_HOST e DB_USERNAME foram configurados. Faltam Account ID correto, token Cloudflare e APP_URL final. A sessão Wrangler local disponível pertence a outra conta.
+
+Configurações do environment:
 
 | Tipo | Nome | Conteúdo |
 | --- | --- | --- |
@@ -32,7 +34,7 @@ No GitHub, configure environment **production**:
 | Secret | APP_KEY | Chave Laravel estável |
 | Secret | DB_PASSWORD | Senha do banco sem percent-encoding |
 
-DB_DATABASE=postgres, DB_PORT=5432 e DB_SCHEMA=chamados estão no wrangler.jsonc. Gere APP_KEY uma vez com `php artisan key:generate --show` e guarde no Secret. Não regenere a cada deploy. Antes de uso real, substitua a senha compartilhada no chat e guarde a nova somente no gerenciador de segredos.
+DB_DATABASE=postgres, DB_PORT=5432 e DB_SCHEMA=chamados estão no wrangler.jsonc. Gere APP_KEY uma vez com `php artisan key:generate --show` e guarde no Secret. Não regenere a cada deploy. Antes de uso real, substitua a senha compartilhada no chat e atualize o Secret DB_PASSWORD e o arquivo privado local correspondente.
 
 O workflow valida configurações, constrói a imagem, prepara o schema, migra e publica com Wrangler. Secrets são arquivos temporários ignorados pelo Git/Docker e removidos ao fim. Não são argumentos da linha de comando nem conteúdo da imagem. CI não usa credenciais Supabase: o PostgreSQL de testes é descartável.
 

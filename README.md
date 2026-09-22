@@ -1,5 +1,7 @@
 # Central de Chamados
 
+[![Quality](https://github.com/nevesntc/Chamados/actions/workflows/ci.yml/badge.svg)](https://github.com/nevesntc/Chamados/actions/workflows/ci.yml)
+
 Aplicação web para organizar solicitações internas, acompanhar o atendimento e distribuir trabalho entre responsáveis. Construída com **Laravel 13, Inertia 2, Vue 3 e TypeScript**, com SQLite local.
 
 ## O que funciona
@@ -149,7 +151,7 @@ Todas as Actions de escrita usam `TicketWriteTransaction`. A primeira instruçã
 
 A linha é infraestrutura de coordenação, não uma contagem de chamados. Evita depender de `IMMEDIATE`, que a versão instalada do Laravel só aplica no PHP 8.4+. Há espera de 5 segundos por bloqueio, até três tentativas transacionais e erro compreensível se o SQLite continuar ocupado. Não use escrita direta fora das Actions para operações da aplicação.
 
-O teste `ConcurrentAssignmentTest` usa **dois processos PHP e o mesmo arquivo SQLite**, com sinais para sobrepor as transações. Ele verifica que o segundo processo espera e escolhe com base na gravação anterior. Não é apenas um teste sequencial ou uma simulação de banco.
+O teste `ConcurrentAssignmentTest` usa **dois processos PHP**, com o mesmo arquivo SQLite ou schema PostgreSQL isolado, com sinais para sobrepor as transações. Ele verifica que o segundo processo espera e escolhe com base na gravação anterior. Não é apenas um teste sequencial ou uma simulação de banco.
 
 ## SQLite, PostgreSQL e publicação
 
@@ -157,7 +159,7 @@ SQLite permanece como padrão local e pode servir produção quando persistênci
 
 A estrutura é **Cloudflare Worker → container PHP/Apache → Supabase**. PHP permanece no container. Sessões ficam no PostgreSQL; arquivos do container são descartáveis. Não há API separada.
 
-A configuração aceita schema dedicado e TLS. A CI inclui a suíte e concorrência real em PostgreSQL 17. Isso não equivale a validar um projeto Supabase específico: veja [evidências](docs/validacao.md).
+A configuração aceita schema dedicado e TLS. A suíte e a concorrência real passaram na CI com PostgreSQL 17. O Supabase PostgreSQL 17.6 também recebeu migrations e seed por Session pooler com TLS; os testes destrutivos não rodam nele. Veja [evidências](docs/validacao.md).
 
 Siga [o guia de publicação](docs/deploy.md) para configurar segredos, conexão e CD manual. Migrations não importam registros do SQLite. A aplicação continua sem login; restrinja acesso antes de usar dados reais.
 
@@ -175,7 +177,7 @@ No Windows com a configuração do projeto, substitua `php` por `.\\scripts\\php
 
 Formatar: `php vendor/bin/pint` e `npm run format`. ESLint cuida dos problemas de código; Prettier cuida do layout dos arquivos Vue/TS/CSS.
 
-A suíte cobre atribuições manual/automática, empate, pessoa sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, seeds, 404 e concorrência. Os testes comuns usam SQLite em memória; o de concorrência cria e remove seu arquivo temporário isolado.
+A suíte cobre atribuições manual/automática, empate, pessoa sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, seeds, 404 e concorrência. Localmente, os testes comuns usam SQLite em memória; o concorrente usa arquivo temporário. Na CI PostgreSQL, os testes usam banco descartável e a concorrência cria um schema temporário exclusivo.
 
 A [CI](.github/workflows/ci.yml) verifica PHP 8.3/8.4, Node 22, PostgreSQL descartável, Chromium desktop/celular e imagem Docker. O [CD](.github/workflows/deploy.yml) roda manualmente na main e exige a CI aprovada. Veja as evidências locais e o roteiro de navegador em [validação](docs/validacao.md).
 
