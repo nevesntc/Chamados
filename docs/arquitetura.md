@@ -80,3 +80,5 @@ Não adicionamos login. Controle de acesso na infraestrutura deve preceder uso r
 ## ADR-008 — Vercel como alternativa de hospedagem
 
 O usuário autorizou Vercel se simplificar a publicação. A documentação atual suporta Container Images em beta. vercel.json reutiliza o Dockerfile existente através de Services, mantendo Laravel, Postgres e sessões externas. Evitamos duplicar imagens ou mudar o produto para outra stack. Configuração adicionada, mas execução no provedor só pode ser considerada validada após deploy e smoke test autenticados. A opção Cloudflare permanece; não há publicação dupla automática.
+
+O Dockerfile normaliza leitura/travessia do código recebido por upload. O entrypoint fixa umask e atribui ao usuário Apache os caches gerados na inicialização; não depende do umask do provedor. O smoke da CI inicializa com umask 077 para verificar esse caso.
