@@ -6,7 +6,7 @@ Push e pull request executam o workflow **Quality**: PHP 8.3/8.4, SQLite e Postg
 
 ## Banco
 
-O SQLite continua sendo o padrão local. O arquivo `.env.production.example` documenta as variáveis do PostgreSQL. As credenciais ficam apenas no ambiente do servidor, nunca em variáveis `VITE_` ou no código Vue.
+O SQLite continua sendo o padrão local; o PostgreSQL é usado apenas na versão publicada. As credenciais ficam somente no ambiente do servidor, nunca em variáveis `VITE_` ou no código Vue.
 
 A conexão direta do Supabase exige IPv6. Use a conexão pelo **Session pooler**, em *Connect → Session pooler*: copie host e usuário exatos, na porta 5432, sem adivinhar a região. Não use transaction pooling para migrations.
 
@@ -20,7 +20,33 @@ O runtime usa a role `chamados_runtime`, com leitura, uso das sequências e apen
 
 A Vercel oferece Container Images: o `vercel.json` aponta o serviço `app` para o mesmo Dockerfile que a CI constrói e testa, sem duplicar imagem nem trocar a stack. A porta padrão é 80, já usada pelo Apache.
 
-O projeto `central-de-chamados`, na equipe `nevesntcs-projects`, está ligado a `nevesntc/Chamados`. Configure as variáveis de `.env.production.example` no ambiente **Production**, com `APP_URL` em HTTPS, `TRUST_PROXY=true`, `SESSION_DRIVER=database`, `SESSION_SECURE_COOKIE=true` e `SESSION_ENCRYPT=true`. `APP_KEY` e `DB_PASSWORD` são segredos e não vêm automaticamente dos GitHub Secrets. Gere a `APP_KEY` uma única vez com `php artisan key:generate --show` e não a regenere a cada deploy.
+O projeto `central-de-chamados`, na equipe `nevesntcs-projects`, está ligado a `nevesntc/Chamados`. Configure no ambiente **Production** as variáveis abaixo. `APP_KEY` e `DB_PASSWORD` são segredos, não vêm automaticamente dos GitHub Secrets e nunca entram no repositório. Gere a `APP_KEY` uma única vez com `php artisan key:generate --show` e não a regenere a cada deploy.
+
+```ini
+APP_NAME="Central de Chamados"
+APP_ENV=production
+APP_KEY=              # segredo
+APP_DEBUG=false
+APP_URL=https://seu-projeto.vercel.app
+APP_LOCALE=pt_BR
+APP_FALLBACK_LOCALE=pt_BR
+TRUST_PROXY=true
+DB_CONNECTION=pgsql
+DB_HOST=host-do-session-pooler
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=chamados_runtime.referencia-do-projeto
+DB_PASSWORD=          # segredo
+DB_SCHEMA=chamados
+DB_SSLMODE=require
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+SESSION_ENCRYPT=true
+CACHE_STORE=array
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=stderr
+LOG_LEVEL=warning
+```
 
 `https://central-de-chamados-neves.vercel.app` é um domínio público específico do projeto e o valor de `APP_URL` em Production. A proteção SSO `all_except_custom_domains` permanece nas URLs de deployment da Vercel; não desative o SSO global para publicar outro domínio.
 
