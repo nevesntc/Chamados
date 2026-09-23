@@ -77,9 +77,8 @@ test('renomeia a equipe, remove um membro e permite sair', async ({ page }, test
 
   await page.getByRole('button', { name: 'Sair da equipe' }).click();
   await expect(page).toHaveURL(/\/workspace$/);
+  // Fora da equipe, volta para o espaço pessoal e não vê mais os chamados dela.
   await expect(page.locator('.workspace strong')).not.toHaveText(teamName);
-
-  await loginAs(page, ownerEmail);
   await page.goto('/workspace/equipe');
   await expect(page.locator('.team-person')).toHaveCount(1);
 });

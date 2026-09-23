@@ -127,3 +127,9 @@ O dono do espaço renomeia a equipe e desliga pessoas; qualquer membro sai por c
 **Espaço ativo:** quem perde o vínculo tem `current_workspace_id` movido para outro espaço seu; sem nenhum, o middleware cria o espaço pessoal na requisição seguinte. Sem isso, a pessoa ficaria presa em 403 após ser desligada.
 
 **Limite:** não há papéis intermediários. Membro e dono são os únicos níveis, e todo membro continua vendo e editando os chamados da equipe.
+
+## ADR-013 — Limites de tentativa por ação
+
+O `throttle:N,M` genérico do Laravel identifica um visitante por domínio e IP, sem considerar a rota. Login e cadastro, ambos anônimos, acabavam no mesmo contador: gastar tentativas em um consumia o outro, e o menor limite entre eles derrubava a próxima requisição. Em uma rede com saída única, poucas pessoas legítimas travariam a porta de entrada.
+
+Cada ação sensível — login, cadastro, convite, entrada por código e troca de senha — passa a ter um limitador nomeado, registrado em `AppServiceProvider`, com chave própria por conta autenticada ou por IP. Os limites por minuto continuam os mesmos; muda apenas o isolamento entre eles. Um teste de integração fixa a regra: esgotar o login não impede um cadastro.

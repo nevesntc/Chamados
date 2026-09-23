@@ -205,7 +205,8 @@ A [CI](.github/workflows/ci.yml) roda PHP 8.3/8.4, Node 22, PostgreSQL descartá
 - CSRF nas rotas web, consultas parametrizadas, validação no servidor e campos de escrita declarados explicitamente.
 - Descrições renderizadas como texto pelo Vue, sem HTML arbitrário.
 - Chaves estrangeiras e valores de status e prioridade restritos nas migrations.
-- Login por sessão do Laravel, senhas com hash, limite de tentativas e espaço isolado por vínculo de equipe. Convites são guardados como hash e expiram.
+- Login por sessão do Laravel, senhas com hash e espaço isolado por vínculo de equipe. Convites são guardados como hash e expiram.
+- Login, cadastro, convite, entrada por código e troca de senha têm limite de tentativas por minuto, cada um com contador próprio por conta ou por IP. O `throttle` genérico do Laravel identifica visitantes só por IP e faria essas ações dividirem um único contador, o que travaria quem está atrás do mesmo IP da rede.
 - O route binding de chamados e a validação de responsável são limitados ao espaço ativo, então um ID de outra equipe resulta em 404 ou erro de validação.
 - Em produção, uma role PostgreSQL restrita ao schema da aplicação, sessões cifradas no banco, cabeçalhos contra enquadramento e adivinhação de tipo, e `no-store` nas páginas autenticadas.
 - `.env`, banco local, dependências e ferramentas de máquina ficam fora do Git.

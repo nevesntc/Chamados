@@ -14,6 +14,8 @@ A conexão direta do Supabase exige IPv6. Use a conexão pelo **Session pooler**
 
 O runtime usa a role `chamados_runtime`, com leitura, uso das sequências e apenas as escritas necessárias por tabela dentro do schema da aplicação, sem criar objetos nem excluir chamados. Crie a role com senha aleatória fora do Git e execute `deploy/runtime-grants.sql` como administrador para reproduzir os grants. As migrations usam uma credencial administrativa separada; ao acrescentar uma tabela, conceda as permissões à role de runtime antes de publicar o código que a escreve. Rotacione periodicamente a senha administrativa no painel do Supabase e atualize os locais privados que a utilizarem.
 
+**Reaplique `deploy/runtime-grants.sql` ao publicar a gestão de equipe.** Renomear o espaço exige `UPDATE` em `workspaces`, e desligar alguém exige `DELETE` em `workspace_members`; sem esses grants as duas ações falham apenas em produção. O arquivo também concede escrita em `cache` e `cache_locks`, necessária porque `CACHE_STORE=database` guarda os contadores de tentativa: com o valor `array` anterior, o contador vivia só durante a requisição e o limite não valia entre chamadas.
+
 `php artisan app:prepare-production-database` aceita somente PostgreSQL com o schema `chamados`, cria o schema quando necessário e aplica migrations e seed sem apagar dados. O seed padrão é vazio: as pessoas entram pelo cadastro real. O comando não importa dados do SQLite. Nunca execute PHPUnit ou `migrate:fresh` no banco de produção.
 
 ## Vercel
@@ -42,7 +44,7 @@ DB_SSLMODE=require
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
 SESSION_ENCRYPT=true
-CACHE_STORE=array
+CACHE_STORE=database
 QUEUE_CONNECTION=sync
 LOG_CHANNEL=stderr
 LOG_LEVEL=warning

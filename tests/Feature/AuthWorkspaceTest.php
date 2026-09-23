@@ -74,6 +74,19 @@ class AuthWorkspaceTest extends TestCase
         $this->get('/cadastro')->assertRedirect('/workspace');
     }
 
+    public function test_each_sensitive_action_has_its_own_rate_limit(): void
+    {
+        // Oito tentativas de senha errada esgotam o limite de login.
+        for ($attempt = 0; $attempt < 8; $attempt++) {
+            $this->post('/entrar', ['email' => 'ninguem@example.test', 'password' => 'errada']);
+        }
+        $this->post('/entrar', ['email' => 'ninguem@example.test', 'password' => 'errada'])->assertStatus(429);
+
+        // O cadastro tem contador próprio e continua disponível para quem nunca errou a senha.
+        $this->register('Maria Silva', 'maria@example.test');
+        $this->assertAuthenticated();
+    }
+
     public function test_registration_rejects_weak_password_and_duplicate_email(): void
     {
         $this->post('/cadastro', ['name' => 'A', 'email' => 'a@example.test', 'password' => 'weak', 'password_confirmation' => 'weak'])->assertSessionHasErrors('password');
