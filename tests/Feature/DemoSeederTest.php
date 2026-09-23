@@ -9,6 +9,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use RuntimeException;
@@ -35,6 +36,11 @@ class DemoSeederTest extends TestCase
 
     public function test_optional_demo_seed_provides_three_login_accounts_and_balances_next_ticket(): void
     {
+        // O seed é deliberadamente restrito a SQLite, então a matriz PostgreSQL não o exercita.
+        if (DB::getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('DemoSeeder é restrito a SQLite.');
+        }
+
         $this->withoutVite();
         $this->seed(DemoSeeder::class);
         $this->seed(DemoSeeder::class);
