@@ -199,7 +199,7 @@ A [CI](.github/workflows/ci.yml) verifica PHP 8.3/8.4, Node 22, PostgreSQL desca
 - O servidor de desenvolvimento fica em `127.0.0.1`; em produção, mantenha HTTPS, APP_KEY estável, banco com backup e segredos fora do repositório.
 - O bloqueio global de escrita privilegia correção e simplicidade para esta escala; não é uma solução de alto volume distribuído.
 - Não há promessa de ausência de bugs. Verificações executadas e limitações conhecidas estão registradas.
-- Um backup cifrado local foi gerado e validado com `pg_restore --list`. A chave precisa ser guardada separadamente; backup externo periódico e teste de restauração integral ainda são pendentes. A senha administrativa do Supabase que apareceu na conversa deve ser rotacionada no painel.
+- Um backup cifrado local foi gerado e restaurado em PostgreSQL temporário; as contagens de contas, responsáveis e chamados conferiram. A chave precisa ser guardada separadamente; backup externo periódico ainda está pendente. A senha administrativa do Supabase que apareceu na conversa deve ser rotacionada no painel.
 
 ## Colaboração humana e com IA
 
