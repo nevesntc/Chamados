@@ -77,3 +77,9 @@ O comando `create` gera um dump em formato custom apenas do schema `chamados`, c
 
 - [Vercel: Container Images](https://vercel.com/docs/functions/container-images)
 - [Supabase: conexão PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres)
+
+## Região da aplicação
+
+A computação da Vercel roda em `pdx1` (Oregon), fixada em `vercel.json`, porque o PostgreSQL do Supabase está em `us-west-2`. Antes disso a aplicação subia em `iad1` (Washington) e cada consulta atravessava os Estados Unidos: `/up`, que não toca o banco, respondia em 0,24 s, enquanto `/entrar`, que lê a sessão no PostgreSQL, levava 1,43 s. Como a sessão vive no banco, toda requisição paga esse trajeto ao menos duas vezes antes de qualquer consulta da tela.
+
+Ao trocar de banco ou de região, confira o cabeçalho `X-Vercel-Id` da resposta: ele mostra a borda e a região de computação, nessa ordem.
