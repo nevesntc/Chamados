@@ -229,4 +229,4 @@ A [CI](.github/workflows/ci.yml) roda PHP 8.3/8.4, Node 22, PostgreSQL descartá
 - [SQLite: quando usar](https://www.sqlite.org/whentouse.html) e [transações](https://www.sqlite.org/lang_transaction.html).
 - [Supabase: conexão PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
-A interface é própria, sem template visual externo. As decisões de arquitetura estão registradas aqui e em [docs/arquitetura.md](docs/arquitetura.md). Usei assistência de IA no planejamento, na implementação e na verificação, revisando o resultado.
+A interface é própria, sem template visual externo. As decisões de arquitetura estão registradas aqui e em [docs/arquitetura.md](docs/arquitetura.md).
