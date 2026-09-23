@@ -196,7 +196,9 @@ npm run build
 
 No Windows com a configuração local do projeto, use `.\scripts\php.ps1 artisan test`; o helper propaga o `.tools/php.ini` aos subprocessos. Também é possível chamar `php -c .tools\php.ini vendor\bin\phpunit` diretamente. Para formatar: `php vendor/bin/pint` e `npm run format`.
 
-A suíte cobre atribuição manual e automática, empate, responsável sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, cadastro, login, isolamento entre espaços, convites, perfil, 404, o seed de demonstração e a concorrência. Os testes comuns usam SQLite em memória; o de concorrência usa arquivo temporário e, na CI com PostgreSQL, um schema exclusivo.
+A suíte cobre atribuição manual e automática, empate, responsável sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, cadastro, login, isolamento entre espaços, convites, perfil, 404, o seed de demonstração e a concorrência. Também cobre o que foi acrescentado depois: renomear a equipe, desligar alguém preservando o histórico, sair por conta própria, voltar por convite sem duplicar o responsável, a duração da sessão, o limite de tentativas por ação e a recusa de subir com migration pendente. Os testes comuns usam SQLite em memória; o de concorrência usa arquivo temporário e, na CI com PostgreSQL, um schema exclusivo.
+
+Além deles há dois testes de navegador em Chromium, desktop e celular: um percorre o ciclo completo de um chamado e outro exercita a gestão da equipe de ponta a ponta.
 
 A [CI](.github/workflows/ci.yml) roda PHP 8.3/8.4, Node 22, PostgreSQL descartável, Chromium desktop e celular, e a imagem Docker.
 

@@ -28,4 +28,6 @@ Esta matriz resume, com redação própria, os requisitos do desafio e onde cada
 
 Além do pedido, o projeto tem autenticação com espaços de trabalho isolados (justificada no README), CI em PostgreSQL e SQLite com PHP 8.3/8.4, navegador e Docker, e publicação em Vercel com PostgreSQL gerenciado no Supabase, por TLS e schema dedicado. Consulte o [guia de publicação](deploy.md).
 
+Do lado operacional: sessão de 30 minutos que termina ao fechar o navegador, limite de tentativas com contador próprio por ação, role de banco restrita ao schema da aplicação, e um container que recusa subir quando o banco está atrás das migrations que o código espera. As decisões estão nas ADRs 013 a 015 em [arquitetura.md](arquitetura.md).
+
 Endereço público: [Central de Chamados](https://central-de-chamados-neves.vercel.app).
