@@ -4,7 +4,7 @@
 
 Aplicação web para registrar solicitações internas, acompanhar o atendimento e distribuir o trabalho entre os responsáveis. Construída com **Laravel 13, Inertia 2, Vue 3 e TypeScript**, usando SQLite no ambiente local.
 
-Versão publicada: [central-de-chamados-neves.vercel.app](https://central-de-chamados-neves.vercel.app). Os chamados só ficam acessíveis após login.
+Versão publicada: [central-de-chamados-neves.vercel.app](https://central-de-chamados-neves.vercel.app). Os chamados só ficam acessíveis após login; crie uma conta em `/cadastro` para entrar. As contas de demonstração descritas abaixo são geradas por um seed e valem somente na instalação local.
 
 ## O que a aplicação faz
 
@@ -47,7 +47,9 @@ O `DemoSeeder` é opcional e serve para avaliar a aplicação sem precisar criar
 
 ### Contas de demonstração
 
-O seed cria o espaço **Equipe Demonstração Local** com três responsáveis, cinco chamados cobrindo os quatro status e cargas ativas de 2, 1 e 0. O próximo chamado automático vai para Carla, que está sem chamados ativos. As três contas usam a senha `Demo12345!`:
+Estas contas existem **apenas na sua máquina, depois de rodar o `DemoSeeder`**. Elas não valem no endereço publicado: lá o acesso é por cadastro próprio, em `/cadastro`.
+
+O seed cria o espaço **Equipe Demonstração Local** com três responsáveis, cinco chamados cobrindo os quatro status e cargas ativas de 2, 1 e 0. Logo após o seed, o próximo chamado automático vai para Carla, que está sem chamados ativos. As três contas usam a senha `Demo12345!`:
 
 | Pessoa | E-mail |
 | --- | --- |
@@ -55,7 +57,7 @@ O seed cria o espaço **Equipe Demonstração Local** com três responsáveis, c
 | Bruno Demonstração | `bruno.demo@example.test` |
 | Carla Demonstração | `carla.demo@example.test` |
 
-São endereços `.test` sem caixa postal e senha fixa, destinados apenas à avaliação local. Executar o seed novamente reconhece a equipe já criada e não altera os dados; contas conflitantes interrompem a carga com erro explícito.
+São endereços `.test` sem caixa postal e senha fixa, destinados apenas à avaliação local. Executar o seed de novo reconhece a equipe já criada e não altera os dados; se já existirem contas com esses e-mails em outro estado, o seed para com um erro explicando o motivo.
 
 ### Instalação manual equivalente
 
@@ -67,10 +69,11 @@ php -r "file_exists('database/database.sqlite') || touch('database/database.sqli
 php artisan migrate --seed
 npm ci
 npm run build
+php artisan db:seed --class=DemoSeeder # opcional, mesmas contas de demonstração
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-O `key:generate` vale para a primeira instalação. Não regenere a chave de um ambiente em uso sem planejar o impacto em sessões e dados cifrados.
+O `migrate --seed` usa o seed padrão, que é vazio de propósito: as contas de demonstração vêm do `DemoSeeder`, na linha seguinte. O `key:generate` vale para a primeira instalação. Não regenere a chave de um ambiente em uso sem planejar o impacto em sessões e dados cifrados.
 
 ### Windows sem PHP configurado ou Composer no PATH
 
@@ -194,7 +197,7 @@ npm run typecheck
 npm run build
 ```
 
-No Windows com a configuração local do projeto, use `.\scripts\php.ps1 artisan test`; o helper propaga o `.tools/php.ini` aos subprocessos. Também é possível chamar `php -c .tools\php.ini vendor\bin\phpunit` diretamente. Para formatar: `php vendor/bin/pint` e `npm run format`.
+Se você instalou pelo `setup.ps1` no Windows, use `.\scripts\php.ps1 artisan test`; o helper propaga o `.tools/php.ini` aos subprocessos. Com um PHP já configurado no sistema, os comandos acima funcionam direto. Também é possível chamar `php -c .tools\php.ini vendor\bin\phpunit` diretamente. Para formatar: `php vendor/bin/pint` e `npm run format`.
 
 A suíte cobre atribuição manual e automática, empate, responsável sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, cadastro, login, isolamento entre espaços, convites, perfil, 404, o seed de demonstração e a concorrência. Também cobre o que foi acrescentado depois: renomear a equipe, desligar alguém preservando o histórico, sair por conta própria, voltar por convite sem duplicar o responsável, a duração da sessão, o limite de tentativas por ação e a recusa de subir com migration pendente. Os testes comuns usam SQLite em memória; o de concorrência usa arquivo temporário e, na CI com PostgreSQL, um schema exclusivo.
 
@@ -217,13 +220,14 @@ A [CI](.github/workflows/ci.yml) roda PHP 8.3/8.4, Node 22, PostgreSQL descartá
 - O servidor de desenvolvimento escuta em `127.0.0.1`. Em produção, mantenha HTTPS, `APP_KEY` estável, backup do banco e segredos fora do repositório.
 - O bloqueio global de escrita privilegia correção e simplicidade nesta escala; não é uma solução para alto volume distribuído.
 
-## Demonstração
+## Roteiro rápido
 
-1. Rode o `DemoSeeder`, entre como Ana e abra a aba **Equipe** para ver os três responsáveis e suas cargas.
-2. Crie um chamado com distribuição automática e confira que ele vai para Carla, que está com carga zero.
-3. Edite um chamado para resolvido e observe a carga do responsável diminuir.
-4. Mostre a seleção manual e o isolamento entre espaços de trabalho.
-5. Explique o desempate por menor ID e a proteção contra escritas concorrentes.
+Com o `DemoSeeder` aplicado, entrando como Ana:
+
+1. Abra a aba **Equipe**: três responsáveis, com cargas ativas de 2, 1 e 0.
+2. Crie um chamado com distribuição automática. Ele vai para Carla, que está com carga zero.
+3. Edite um chamado para **resolvido** e veja a carga daquele responsável diminuir no painel lateral da listagem.
+4. Crie outro chamado escolhendo o responsável manualmente, para comparar com o modo automático.
 
 ## Referências e bibliotecas
 
