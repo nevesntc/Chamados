@@ -4,6 +4,15 @@ Histórico iniciado em 21/09/2026. As seções antigas registram verificações 
 
 ## Versão com cadastro e workspace privado — 22/09/2026
 
+### Demonstração e endurecimento posterior
+
+- Três contas de demonstração foram registradas no domínio público pelo fluxo normal, com senhas aleatórias em `.tools/demo-accounts.json` ignorado pelo Git. Duas aderiram ao workspace da primeira por convite; a consulta com a role de runtime confirmou um dono, dois membros e três responsáveis. O convite foi revogado após a adesão.
+- Três chamados `[Demo]` foram criados pela rota de atribuição automática; consulta posterior confirmou um chamado ativo por responsável. Nenhuma conta ou chamado foi inserido por seed ou SQL direto.
+- A role `chamados_runtime` foi criada no Supabase e configurada na Vercel. Conexão, leitura e escrita transacional foram testadas; criação de objetos, exclusão de chamados e inserção em migrations foram negadas. Depois de reduzir as permissões de escrita por tabela, o smoke remoto de cadastro, login/logout, criação de chamado e persistência passou novamente; a conta temporária foi removida.
+- `scripts/backup-production.php create` executou `pg_dump` 17.5 contra o PostgreSQL 17.6, salvou um arquivo cifrado AES-256-GCM em `.tools/backups` e verificou seu formato com `pg_restore --list`. O comando `verify` passou de forma independente. Não houve restauração integral em banco isolado nem cópia externa/schedule configurados.
+- `php artisan test` com PHPRC local: 23 testes, 279 assertions aprovados; Pint, lint, typecheck e build aprovados. `composer audit` não apontou advisories e `npm audit --omit=dev --audit-level=high` reportou zero vulnerabilidades na consulta realizada.
+- `SESSION_ENCRYPT=true` foi configurado na Vercel; os cabeçalhos web e a diretiva de cache privado têm teste de integração. A publicação e a checagem HTTP final desses itens são registradas na auditoria final após o deploy.
+
 - `php artisan test` com PHPRC do projeto: 22 testes, 267 assertions, aprovados em SQLite. Inclui cadastro, login/logout, senha, convite, isolamento e concorrência real com dois processos.
 - `php vendor/bin/pint --test`, `npm run lint`, `npm run typecheck` e `npm run build`: aprovados após formatação final.
 - Playwright local: fluxo completo de cadastro, estado vazio, criação, edição, resolução, abas Equipe/Perfil, logout, erro de senha e login passou em Chromium desktop e celular com banco SQLite temporário, `VIEW_COMPILED_PATH` em `%TEMP%` e sessão no banco. O teste móvel também conferiu menu por teclado e revelou que o rodapé da sidebar não era alcançável em tela curta; `overflow-y: auto` corrigiu isso. O processo Playwright no Windows ficou aberto após exibir os testes aprovados e foi encerrado manualmente; a CI Linux fará a verificação definitiva.

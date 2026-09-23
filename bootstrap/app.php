@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\EnsureCurrentWorkspace;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         if (env('TRUST_PROXY', false)) {
             $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
         }
-        $middleware->web(append: [HandleInertiaRequests::class]);
+        $middleware->web(append: [HandleInertiaRequests::class, SecurityHeaders::class]);
         $middleware->alias(['workspace' => EnsureCurrentWorkspace::class]);
         $middleware->redirectUsersTo('/workspace');
     })

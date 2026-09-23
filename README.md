@@ -75,7 +75,9 @@ O comando manual `key:generate` é para a primeira instalação. Não regenere a
 
 ### Primeiro acesso e equipe
 
-Cadastre uma conta em `/cadastro`; ela ganha um workspace privado e aparece como responsável. Na aba **Equipe**, o dono gera um código de convite válido por sete dias. Outras pessoas criam suas contas e inserem o código para entrar na equipe. Cada novo membro passa a poder receber chamados automaticamente ou manualmente. Para demonstrar o mínimo de três responsáveis do desafio sem dados falsos, cadastre três pessoas reais no mesmo workspace. O seed opcional antigo foi removido.
+Cadastre uma conta em `/cadastro`; ela ganha um workspace privado e aparece como responsável. Na aba **Equipe**, o dono gera um código de convite válido por sete dias. Outras pessoas criam suas contas e inserem o código para entrar na equipe. Cada novo membro passa a poder receber chamados automaticamente ou manualmente. Em uma instalação local limpa, cadastre três contas no mesmo workspace para demonstrar três responsáveis. O seed padrão não cria usuários.
+
+Na versão publicada, três contas identificadas como **Demonstração** foram cadastradas pela interface e reunidas por convite no mesmo workspace. Três chamados `[Demo]` foram distribuídos automaticamente, um por responsável. O convite usado foi revogado. As credenciais geradas ficam apenas no arquivo local ignorado `.tools/demo-accounts.json`; não estão no repositório e não são pessoas reais.
 
 ### Desenvolvimento com atualização automática
 
@@ -192,16 +194,20 @@ A [CI](.github/workflows/ci.yml) verifica PHP 8.3/8.4, Node 22, PostgreSQL desca
 - Chaves estrangeiras e valores permitidos de status/prioridade definidos nas migrations.
 - `.env`, SQLite, dependências e ferramentas locais ignorados pelo Git.
 - Login via sessão Laravel, senhas com hash, CSRF, limitação de tentativas e workspace isolado por membership. Convites temporários são armazenados como hash.
+- Produção usa uma role PostgreSQL limitada ao schema `chamados`, sessões cifradas no banco, cabeçalhos contra enquadramento e interpretação indevida de conteúdo, e `no-store` nas páginas autenticadas.
 - Sem exclusão, anexos, SLA, notificações, comentários, recuperação por e-mail ou histórico de eventos nesta versão. A recuperação de senha fora da sessão depende de integrar um provedor de e-mail no futuro.
 - O servidor de desenvolvimento fica em `127.0.0.1`; em produção, mantenha HTTPS, APP_KEY estável, banco com backup e segredos fora do repositório.
 - O bloqueio global de escrita privilegia correção e simplicidade para esta escala; não é uma solução de alto volume distribuído.
 - Não há promessa de ausência de bugs. Verificações executadas e limitações conhecidas estão registradas.
+- Um backup cifrado local foi gerado e validado com `pg_restore --list`. A chave precisa ser guardada separadamente; backup externo periódico e teste de restauração integral ainda são pendentes. A senha administrativa do Supabase que apareceu na conversa deve ser rotacionada no painel.
 
 ## Colaboração humana e com IA
 
 Leia [AGENTS.md](AGENTS.md) antes de alterar código. [CLAUDE.md](CLAUDE.md) aponta para a mesma fonte de instruções. Os documentos descrevem invariantes, estrutura e comandos para evitar regras divergentes entre assistentes.
 
 A [auditoria inicial](docs/auditoria-e-plano.md) é um registro histórico anterior à implementação. Em caso de diferença, o README e as decisões de arquitetura atuais descrevem o estado implementado.
+
+A [auditoria final](docs/auditoria-final.md) separa o escopo entregue dos riscos operacionais que permanecem.
 
 ## Entrega e demonstração
 

@@ -31,6 +31,18 @@ class AuthWorkspaceTest extends TestCase
         return User::where('email', $email)->firstOrFail();
     }
 
+    public function test_web_responses_set_security_headers_and_private_pages_are_not_cached(): void
+    {
+        $this->get('/entrar')
+            ->assertOk()
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY')
+            ->assertHeader('Content-Security-Policy', "frame-ancestors 'none'");
+
+        $this->register('Maria Silva', 'maria@example.test');
+        $this->get('/workspace')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+    }
+
     public function test_guest_is_redirected_and_registration_creates_only_real_member(): void
     {
         $this->get('/workspace')->assertRedirect('/entrar');

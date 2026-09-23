@@ -10,7 +10,7 @@ SQLite continua padrão local. `.env.production.example` documenta PostgreSQL. C
 
 O endereço direto fornecido exige IPv6, indisponível no teste local. A conexão pelo Session pooler foi validada e o schema foi inicializado em 2026-09-22. Em **Connect → Session pooler**, copie host e usuário exatos, porta 5432. Não adivinhe região. Para migrations, não usar transaction pooling.
 
-DB_SSLMODE=require exige criptografia. Para verificação completa de certificado, provisionar CA e configurar verify-full. DB_SCHEMA=chamados separa o app do public; não exponha esse schema na Data API. Em produção real, use credenciais separadas para migration e runtime com privilégios mínimos.
+DB_SSLMODE=require exige criptografia. Para verificação completa de certificado, provisionar CA e configurar verify-full. DB_SCHEMA=chamados separa o app do public; não exponha esse schema na Data API. O runtime da Vercel agora usa `chamados_runtime`, com leitura, sequências e apenas escritas necessárias por tabela no schema da aplicação, sem criação de objetos nem exclusão de chamados. Crie a role com senha aleatória fora do Git e execute `deploy/runtime-grants.sql` como administrador para reproduzir os grants. Migrations usam credencial administrativa separada; conceda à role de runtime as permissões de uma nova tabela antes de publicar código que a escreva. A senha administrativa compartilhada na conversa ainda precisa ser rotacionada no painel Supabase e atualizada nos locais privados que a utilizarem.
 
 `php artisan app:prepare-production-database` aceita somente PostgreSQL/schema chamados, cria o schema se necessário e aplica migrations/seed sem apagar dados. O seed padrão é vazio; pessoas entram pelo cadastro real. Não importa SQLite. Nunca execute PHPUnit ou migrate:fresh no banco remoto de produção.
 
@@ -69,8 +69,23 @@ O projeto `central-de-chamados` na equipe `nevesntcs-projects` está ligado a `n
 
 O projeto agora se chama `central-de-chamados`, com o mesmo ID e vínculo GitHub. `https://central-de-chamados-neves.vercel.app` foi adicionado como domínio público específico e é o valor de APP_URL em Production. O usuário autorizou essa exceção; a proteção SSO `all_except_custom_domains` permanece nas URLs de deployment da Vercel. Não desative o SSO global para publicar outro domínio.
 
+Em Production, `DB_USERNAME` e `DB_PASSWORD` são da role restrita, `SESSION_ENCRYPT=true`, `SESSION_DRIVER=database` e `SESSION_SECURE_COOKIE=true`. Alterações em variáveis de ambiente exigem novo deployment. Trocar a senha administrativa do Supabase não deve alterar a role de runtime; confirme `/up`, cadastro e login após a rotação. Credenciais de demonstração foram geradas localmente em `.tools/demo-accounts.json`, fora do Git. Não reutilize essas contas para dados reais.
+
 O schema Supabase já está preparado. Para esta versão, aplique a migration `2026_09_22_000000_create_workspaces` antes do rollout; não há migration no boot do container. Previews devem usar banco/schema independente, nunca credenciais da produção. A autenticação protege os dados da aplicação; controles da hospedagem continuam sob responsabilidade da conta.
 
 A versão com autenticação passou por smoke no domínio público: TLS, sessão/CSRF, cadastro, login/logout, rotas, criação de chamado e persistência após novo login. O script local removeu a conta e o chamado temporários. Convite e isolamento foram conferidos em testes de integração e navegador local; não foram repetidos por esse smoke remoto. Resultados em `validacao.md`. O CD Cloudflare continua disponível; não executar dois destinos por padrão.
 
 [Documentação oficial de Container Images](https://vercel.com/docs/functions/container-images).
+
+## Backup manual validado
+
+O utilitário versionado `scripts/backup-production.php` exige `pg_dump` e `pg_restore` da mesma versão principal do servidor (17 neste projeto), além do arquivo privado `.tools/runtime-credential.json`. No Windows deste ambiente:
+
+```powershell
+$env:PG_DUMP_BIN='C:\Program Files\PostgreSQL\17\bin\pg_dump.exe'
+$env:PG_RESTORE_BIN='C:\Program Files\PostgreSQL\17\bin\pg_restore.exe'
+php -c .tools/php.ini scripts/backup-production.php create
+php -c .tools/php.ini scripts/backup-production.php verify .tools/backups/NOME_DO_ARQUIVO.dump.enc
+```
+
+O comando `create` gera dump custom apenas do schema `chamados`, cifra com AES-256-GCM e valida a lista de objetos com `pg_restore`. `.tools/backup-key.base64` e o arquivo `.dump.enc` devem ser guardados **separadamente**, fora deste computador, com acesso limitado. A chave não pode ser recuperada do repositório. Para um ensaio de restauração, use `decrypt BACKUP DESTINO` e depois `pg_restore` em banco descartável isolado; nunca restaure por cima da produção sem plano aprovado. O utilitário limita o dump a 256 MiB e carrega o conteúdo em memória, por isso precisa ser substituído por backup streaming para volumes maiores. Ainda não há cópia externa periódica nem ensaio integral de restauração; ver [auditoria final](auditoria-final.md).

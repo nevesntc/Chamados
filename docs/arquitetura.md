@@ -97,3 +97,11 @@ O domínio `central-de-chamados-neves.vercel.app` foi adicionado ao projeto como
 URLs de trabalho ficam em `/workspace`, `/workspace/chamados`, `/workspace/equipe` e `/workspace/perfil`; `/chamados` redireciona para a nova lista. Cadastro e login ficam em `/cadastro` e `/entrar`. Inertia mantém rotas no Laravel; não há Vue Router nem API duplicada.
 
 Painel e lista consultam o servidor a cada 10 segundos apenas quando a aba está visível. Isso atualiza trabalho compartilhado com latência máxima aproximada de dez segundos, sem infraestrutura de WebSocket. As gravações continuam imediatas e retornam o estado salvo; não prometemos push instantâneo. Formulários não são recarregados durante edição.
+
+## ADR-010 — Restrições de runtime e recuperação operacional
+
+O runtime publicado usa `chamados_runtime`, role PostgreSQL com `USAGE` no schema `chamados`, leitura das tabelas e uso das sequências. Escrita foi concedida por tabela/operação: criação e atualização necessárias para contas, sessões, convites e chamados. Não pode excluir chamados, inserir migrations nem criar objetos. Migrations permanecem tarefa administrativa separada; o código não roda migrations durante boot. Novas tabelas recebem leitura por padrão; uma migration que acrescente escrita exige grant explícito antes do rollout.
+
+Sessões persistem cifradas no PostgreSQL em produção (`SESSION_ENCRYPT=true`). Respostas web incluem políticas de enquadramento, tipo de conteúdo, referenciador e permissões do navegador; conteúdo autenticado recebe `no-store`, e HTTPS recebe HSTS. O teste de middleware cobre os cabeçalhos básicos e o cache privado; o HSTS será verificado no domínio HTTPS após o deploy. Essas medidas não substituem rotação da senha administrativa, verificação de e-mail ou recuperação de conta.
+
+O utilitário `scripts/backup-production.php` usa a role de runtime para gerar apenas o schema da aplicação em formato custom do PostgreSQL. Cifra o arquivo com AES-256-GCM e verifica autenticação e leitura da lista pelo `pg_restore`; chave e backup ficam em `.tools`, fora do Git. É um backup manual e local, com limite de 256 MiB por carregar o dump em memória. Restaurar em banco isolado e manter cópia externa da chave e do backup continuam tarefas operacionais necessárias.
