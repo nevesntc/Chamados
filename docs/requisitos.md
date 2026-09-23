@@ -19,6 +19,7 @@ Esta matriz resume, com redação própria, os requisitos do desafio e onde cada
 | 6.1–6.2 | Execução local reproduzível | SQLite, migrations, seed padrão vazio e `DemoSeeder` opcional documentado no README | Implementado |
 | Adicional | Cadastro, login e logout | Sessão Laravel, hash de senha, CSRF e limite de tentativas | Implementado |
 | Adicional | Espaço de trabalho, equipe e perfil | Convite temporário, escopo por espaço, rotas próprias e troca de equipe | Implementado |
+| Adicional | Gestão da equipe | Dono renomeia o espaço e desliga pessoas; membro sai por conta própria, e o histórico de atendimento é preservado | Implementado |
 | Fundamentos | Testes, componentização e manutenção | PHPUnit, tipos, ESLint, Pint e formulário compartilhado | Implementado |
 | Estilos | Framework CSS moderno e interface organizada | Tailwind 4 e ícones Lucide | Implementado |
 | Referências | Bibliotecas e fontes informadas | Seção de referências no README | Implementado |

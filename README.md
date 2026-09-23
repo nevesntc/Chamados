@@ -15,6 +15,7 @@ Versão publicada: [central-de-chamados-neves.vercel.app](https://central-de-cha
 - Resumo geral dos chamados e carga atual por responsável.
 - Cadastro e login com sessão; cada conta cria um espaço de trabalho próprio e passa a ser um responsável.
 - Equipe por código de convite temporário, com troca de espaço para quem participa de mais de um.
+- Gestão da equipe: o dono renomeia o espaço e desliga pessoas; cada membro pode sair por conta própria.
 - Interface responsiva em português, com validação por campo e retorno de gravação.
 - Testes de regras, rotas e isolamento, incluindo duas atribuições concorrentes em processos independentes.
 - CI em PHP 8.3/8.4, SQLite e PostgreSQL 17, navegador desktop/celular e imagem Docker.
@@ -162,6 +163,8 @@ O custo é mais superfície de código e mais o que manter. Para compensar, o is
 10. **Limites:** título até 150 caracteres e descrição até 5.000, obrigatórios e validados no servidor.
 11. **Edições simultâneas:** as escritas são serializadas, e duas edições do mesmo chamado terminam na última gravação recebida. Não há bloqueio otimista contra formulários abertos há muito tempo.
 12. **Isolamento:** o cadastro cria um espaço privado e só se entra em outro por convite. Chamados e opções de responsáveis são filtrados pelo espaço ativo, inclusive nas rotas de detalhe e edição. Convites são guardados como hash e expiram em sete dias.
+13. **Saída da equipe:** quem sai, ou é desligado pelo dono, deixa de aparecer nas opções e na distribuição automática, mas continua nomeado nos chamados que já atendeu. Preferi desativar o vínculo a apagá-lo, porque apagar exigiria reatribuir o histórico e perderia a informação de quem atendeu o quê. Quem retorna por convite reativa o mesmo registro, sem duplicar responsáveis.
+14. **Papéis:** só o dono renomeia o espaço e desliga pessoas. O dono não pode ser removido nem sair do espaço que criou; como não há transferência de posse nesta versão, permitir isso deixaria a equipe sem responsável administrativo.
 
 ### Concorrência na atribuição
 

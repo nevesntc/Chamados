@@ -80,6 +80,8 @@ const success = computed(() => page.props.flash?.success);
         <Link
           href="/workspace"
           class="nav-item"
+          :prefetch="['hover', 'click']"
+          cache-for="30s"
           :class="{ active: path === '/workspace' }"
           @click="menuOpen = false"
         >
@@ -90,6 +92,8 @@ const success = computed(() => page.props.flash?.success);
         <Link
           href="/workspace/chamados"
           class="nav-item"
+          :prefetch="['hover', 'click']"
+          cache-for="30s"
           :class="{ active: path.startsWith('/workspace/chamados') }"
           @click="menuOpen = false"
         >
@@ -100,6 +104,8 @@ const success = computed(() => page.props.flash?.success);
         <Link
           href="/workspace/equipe"
           class="nav-item"
+          :prefetch="['hover', 'click']"
+          cache-for="30s"
           :class="{ active: path.startsWith('/workspace/equipe') }"
           @click="menuOpen = false"
         >
@@ -110,6 +116,8 @@ const success = computed(() => page.props.flash?.success);
         <Link
           href="/workspace/perfil"
           class="nav-item"
+          :prefetch="['hover', 'click']"
+          cache-for="30s"
           :class="{ active: path.startsWith('/workspace/perfil') }"
           @click="menuOpen = false"
         >

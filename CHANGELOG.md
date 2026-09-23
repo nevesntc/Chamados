@@ -1,5 +1,12 @@
 # Histórico
 
+## 0.4.0 — 2026-09-23
+
+- Gestão da equipe: o dono renomeia o espaço e desliga pessoas, e cada membro pode sair por conta própria.
+- Quem sai deixa de receber chamados, mas continua nomeado nos que já atendeu; retornar por convite reativa o mesmo responsável.
+- Troca de tela mais rápida: os itens do menu usam `prefetch` do Inertia e as atualizações periódicas deixam de disputar com a navegação.
+- Teste de navegador cobrindo renomear, remover e sair da equipe.
+
 ## 0.3.0 — 2026-09-22
 
 - `DemoSeeder` opcional para avaliação local: três contas com login, chamados nos quatro status e cargas ativas 2/1/0. O seed padrão continua vazio.

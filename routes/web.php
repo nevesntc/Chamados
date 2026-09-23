@@ -20,6 +20,9 @@ Route::middleware(['auth', 'workspace'])->group(function () {
     Route::post('/sair', [AuthController::class, 'logout'])->name('logout');
     Route::get('/workspace', [WorkspaceController::class, 'dashboard'])->name('workspace.dashboard');
     Route::get('/workspace/equipe', [WorkspaceController::class, 'team'])->name('workspace.team');
+    Route::patch('/workspace/equipe', [WorkspaceController::class, 'rename'])->name('workspace.rename');
+    Route::post('/workspace/equipe/sair', [WorkspaceController::class, 'leave'])->name('workspace.leave');
+    Route::delete('/workspace/equipe/membros/{member}', [WorkspaceController::class, 'removeMember'])->name('workspace.members.remove');
     Route::post('/workspace/equipe/convites', [WorkspaceController::class, 'invite'])->middleware('throttle:5,1')->name('workspace.invite');
     Route::post('/workspace/equipe/entrar', [WorkspaceController::class, 'join'])->middleware('throttle:10,1')->name('workspace.join');
     Route::post('/workspace/trocar', [WorkspaceController::class, 'switch'])->name('workspace.switch');

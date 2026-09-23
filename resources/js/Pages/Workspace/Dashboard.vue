@@ -10,7 +10,8 @@ defineProps<{
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   refreshTimer = setInterval(() => {
-    if (document.visibilityState === 'visible') router.reload({ only: ['summary', 'recent'] });
+    if (document.visibilityState === 'visible')
+      router.reload({ only: ['summary', 'recent'], async: true });
   }, 10000);
 });
 onUnmounted(() => clearInterval(refreshTimer));

@@ -22,7 +22,8 @@ class StoreTicketRequest extends FormRequest
             'description' => ['required', 'string', 'max:5000'],
             'priority' => ['required', Rule::enum(TicketPriority::class)],
             'assignment_mode' => ['required', Rule::in(['automatic', 'manual'])],
-            'assignee_id' => ['exclude_unless:assignment_mode,manual', 'required', 'integer', Rule::exists('assignees', 'id')->where('workspace_id', $this->user()?->current_workspace_id)],
+            'assignee_id' => ['exclude_unless:assignment_mode,manual', 'required', 'integer', Rule::exists('assignees', 'id')
+                ->where('workspace_id', $this->user()?->current_workspace_id)->whereNull('deactivated_at')],
         ];
     }
 }

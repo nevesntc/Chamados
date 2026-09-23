@@ -79,7 +79,7 @@ class TicketController extends Controller
     private function formOptions(): array
     {
         return [
-            'assignees' => Assignee::query()->where('workspace_id', auth()->user()->current_workspace_id)
+            'assignees' => Assignee::query()->where('workspace_id', auth()->user()->current_workspace_id)->assignable()
                 ->withCount(['tickets as active_count' => fn (Builder $q) => $q->active()])
                 ->orderBy('id')->get(['id', 'name']),
             'statuses' => TicketStatus::options(), 'priorities' => TicketPriority::options(),

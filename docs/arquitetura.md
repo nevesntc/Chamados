@@ -63,7 +63,7 @@ README é o ponto de entrada. Este arquivo guarda as decisões e requisitos.md r
 - users: conta, senha com hash, current_workspace_id.
 - workspaces e workspace_members: equipes privadas e vínculos owner/member.
 - workspace_invites: hash do código e expiração.
-- assignees: id, name, workspace_id, user_id, timestamps.
+- assignees: id, name, workspace_id, user_id, deactivated_at, timestamps.
 - tickets: id, title, description, priority, status, assignee_id, workspace_id, timestamps.
 - ticket_write_locks: linha única id=1, version.
 - Sessões usam arquivos localmente e PostgreSQL em produção; cache e jobs padrão são mantidos.
@@ -98,6 +98,8 @@ URLs de trabalho ficam em `/workspace`, `/workspace/chamados`, `/workspace/equip
 
 Painel e lista consultam o servidor a cada 10 segundos apenas quando a aba está visível. Isso atualiza trabalho compartilhado com latência máxima aproximada de dez segundos, sem infraestrutura de WebSocket. As gravações continuam imediatas e retornam o estado salvo; não prometemos push instantâneo. Formulários não são recarregados durante edição.
 
+**Troca de tela:** cada item do menu lateral usa `prefetch` do Inertia no apontar e no pressionar, com cache de 30 segundos, então a resposta normalmente já está em memória quando o clique acontece. As atualizações periódicas usam `async`, para não cancelar nem enfileirar uma navegação em andamento. Não pré-carregamos tudo ao montar a página: seriam quatro requisições por visita, e em servidor de desenvolvimento de processo único elas atrasariam justamente o clique seguinte.
+
 ## ADR-010 — Restrições de runtime e recuperação operacional
 
 O runtime publicado usa `chamados_runtime`, role PostgreSQL com `USAGE` no schema `chamados`, leitura das tabelas e uso das sequências. Escrita foi concedida por tabela/operação: criação e atualização necessárias para contas, sessões, convites e chamados. Não pode excluir chamados, inserir migrations nem criar objetos. Migrations permanecem tarefa administrativa separada; o código não roda migrations durante boot. Novas tabelas recebem leitura por padrão; uma migration que acrescente escrita exige grant explícito antes do rollout.
@@ -109,3 +111,19 @@ O utilitário `scripts/backup-production.php` usa a role de runtime para gerar a
 ## ADR-011 — Demonstração local isolada do seed padrão
 
 O seed padrão permanece vazio para que cadastro real e produção iniciem sem pessoas fictícias. O comando explícito `db:seed --class=DemoSeeder` funciona somente em ambiente `local`/`testing` com SQLite. Ele cria três usuários autenticáveis e um workspace com cinco chamados de exemplo; o fixture vincula os membros diretamente em transação e usa `WorkspaceMembership` para ativá-los, sem criar uma rota de entrada sem convite. Cada chamado passa por `CreateTicket` e, para mudar de status, `UpdateTicket`. Assim, a mesma transação de escrita protege a seleção automática usada pelo produto. O cenário termina com cargas ativas 2/1/0 e demonstra o efeito de resolvidos/fechados. Uma transação externa torna a carga atômica; uma segunda execução reconhece a equipe pronta sem duplicar registros. Conflitos de e-mail interrompem a carga. A equipe de demonstração local é independente das contas publicadas.
+
+## ADR-012 — Gestão da equipe e desligamento sem perda de histórico
+
+O dono do espaço renomeia a equipe e desliga pessoas; qualquer membro sai por conta própria. As três operações passam por `WorkspaceMembership`, que centraliza a verificação de posse (`isOwner`) antes usada em linha no controller.
+
+**Problema:** `tickets.assignee_id` é chave estrangeira com `restrictOnDelete`, então apagar o responsável de quem sai é impossível enquanto existirem chamados dele. Reatribuir o histórico para outra pessoa resolveria a integridade, mas apagaria a informação de quem de fato atendeu.
+
+**Decisão:** `assignees.deactivated_at` marca o desligamento. O vínculo em `workspace_members` é removido, mas a linha de `assignees` permanece. O escopo `assignable()` filtra quem está ativo e é aplicado na seleção automática, nas opções do formulário, na validação de responsável e na tela de Equipe. Os chamados já atendidos continuam nomeando a pessoa.
+
+**Retorno:** aceitar um convite usa `updateOrCreate` e zera `deactivated_at`, reativando o mesmo registro em vez de criar um segundo responsável para o mesmo usuário — o índice único `(workspace_id, user_id)` já impediria a duplicata.
+
+**Posse:** o dono não pode ser removido nem sair. Não há transferência de posse nesta versão, e permitir a saída deixaria a equipe sem quem convide ou administre. A regra vive no serviço e devolve erro de validação, não 403, porque é uma condição de negócio e não falta de permissão.
+
+**Espaço ativo:** quem perde o vínculo tem `current_workspace_id` movido para outro espaço seu; sem nenhum, o middleware cria o espaço pessoal na requisição seguinte. Sem isso, a pessoa ficaria presa em 403 após ser desligada.
+
+**Limite:** não há papéis intermediários. Membro e dono são os únicos níveis, e todo membro continua vendo e editando os chamados da equipe.

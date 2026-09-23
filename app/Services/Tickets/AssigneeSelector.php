@@ -13,7 +13,7 @@ class AssigneeSelector
     /** Selection must run inside the same write transaction as persistence. */
     public function select(int $workspaceId, ?int $excludingTicketId = null): int
     {
-        $assignee = Assignee::query()->where('workspace_id', $workspaceId)
+        $assignee = Assignee::query()->where('workspace_id', $workspaceId)->assignable()
             ->withCount(['tickets as active_count' => fn (Builder $query) => $query->active()
                 ->when($excludingTicketId, fn (Builder $query) => $query->where('id', '!=', $excludingTicketId))])
             ->orderBy('active_count')->orderBy('id')->first();

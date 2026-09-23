@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\TicketStatus;
 use App\Models\Assignee;
 use App\Models\Ticket;
+use App\Models\User;
 use App\Models\Workspace;
 use App\Services\Workspaces\WorkspaceMembership;
 use Illuminate\Http\RedirectResponse;
@@ -36,23 +37,52 @@ class WorkspaceController extends Controller
         ]);
     }
 
-    public function team(Request $request): Response
+    public function team(Request $request, WorkspaceMembership $membership): Response
     {
         $workspace = $request->user()->currentWorkspace;
 
         return Inertia::render('Workspace/Team', [
-            'people' => Assignee::where('workspace_id', $workspace->id)
+            'workspaceName' => $workspace->name,
+            'people' => Assignee::where('workspace_id', $workspace->id)->assignable()
                 ->withCount(['tickets as active_count' => fn ($q) => $q->active()])
-                ->orderBy('id')->get(['id', 'name']),
+                ->orderBy('id')->get(['id', 'name', 'user_id']),
             'workspaces' => $request->user()->workspaces()->orderBy('name')->get(['workspaces.id', 'name']),
-            'isOwner' => $workspace->members()->whereKey($request->user()->id)->wherePivot('role', 'owner')->exists(),
+            'isOwner' => $membership->isOwner($request->user(), $workspace),
+            'currentUserId' => $request->user()->id,
+            'ownerId' => (int) $workspace->members()->wherePivot('role', 'owner')->value('users.id'),
         ]);
     }
 
-    public function invite(Request $request): RedirectResponse
+    public function rename(Request $request, WorkspaceMembership $membership): RedirectResponse
     {
         $workspace = $request->user()->currentWorkspace;
-        abort_unless($workspace->members()->whereKey($request->user()->id)->wherePivot('role', 'owner')->exists(), 403);
+        abort_unless($membership->isOwner($request->user(), $workspace), 403);
+        $workspace->update($request->validate(['name' => ['required', 'string', 'max:120']]));
+
+        return to_route('workspace.team')->with('success', 'Nome da equipe atualizado.');
+    }
+
+    public function removeMember(Request $request, User $member, WorkspaceMembership $membership): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+        abort_unless($membership->isOwner($request->user(), $workspace), 403);
+        abort_unless($workspace->members()->whereKey($member->id)->exists(), 404);
+        $membership->remove($member, $workspace);
+
+        return to_route('workspace.team')->with('success', $member->name.' saiu da equipe. Os chamados já atendidos continuam no histórico.');
+    }
+
+    public function leave(Request $request, WorkspaceMembership $membership): RedirectResponse
+    {
+        $membership->remove($request->user(), $request->user()->currentWorkspace);
+
+        return to_route('workspace.dashboard')->with('success', 'Você saiu da equipe.');
+    }
+
+    public function invite(Request $request, WorkspaceMembership $membership): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+        abort_unless($membership->isOwner($request->user(), $workspace), 403);
         $code = Str::random(48);
         DB::transaction(function () use ($workspace, $code) {
             DB::table('workspace_invites')->where('workspace_id', $workspace->id)->delete();
