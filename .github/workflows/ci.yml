@@ -50,10 +50,6 @@ jobs:
       - run: php vendor/bin/pint --test
       - run: npm ci
       - run: npm run lint && npm run typecheck && npm run build
-      - name: Worker types
-        run: |
-          printf 'APP_KEY=""\nDB_PASSWORD=""\n' > .dev.vars
-          npm run cf:typecheck
   browser:
     runs-on: ubuntu-latest
     steps:

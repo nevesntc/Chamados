@@ -30,7 +30,7 @@ O formulário é compartilhado entre criação e edição. Filtros, indicadores 
 
 **Trade-off:** serializamos todas as escritas de chamados. É apropriado ao tamanho do desafio, mas limita throughput. Não realizar I/O externo dentro dessa transação.
 
-**PostgreSQL/Supabase:** configuração e teste concorrente foram acrescentados na ADR-007. Consulte validacao.md para resultados reais de CI e situação da conexão Supabase. Migrations criam estrutura; não migram automaticamente registros de SQLite.
+**PostgreSQL/Supabase:** configuração e teste concorrente foram acrescentados na ADR-007. Migrations criam estrutura; não migram automaticamente registros de SQLite.
 
 ## ADR-004 — Regras e desempate
 
@@ -42,13 +42,13 @@ O desempate é previsível, porém não garante rodízio histórico. Histórico 
 
 ## ADR-005 — Autenticação e isolamento de workspaces
 
-O pedido posterior exigiu cadastro e login reais, sem pessoas fictícias. Laravel Auth com sessão e senha com hash atende isso no mesmo monólito; login regenera a sessão e logout a invalida. Rotas de trabalho passam por `auth` e `EnsureCurrentWorkspace`.
+Cadastro e login reais, sem pessoas fictícias, mantêm os responsáveis ligados a contas de verdade. Laravel Auth com sessão e senha com hash atende isso no mesmo monólito; login regenera a sessão e logout a invalida. Rotas de trabalho passam por `auth` e `EnsureCurrentWorkspace`.
 
 Cada cadastro cria usuário, workspace privado, vínculo de dono e responsável na mesma transação. Um usuário pode participar de vários workspaces; `current_workspace_id` define o ativo. Convite gerado pelo dono guarda apenas SHA-256 do código aleatório e expira em sete dias. Aceitar convite cria vínculo e responsável. A opção de troca só consulta os workspaces do usuário. Nomes de responsáveis acompanham a alteração do perfil.
 
 Toda consulta de chamados e responsáveis usa o workspace ativo. Route binding devolve 404 para ID de outro workspace; Form Request recusa responsável de outra equipe. CreateTicket recebe workspaceId validado pelo middleware, e AssigneeSelector seleciona apenas nele, dentro do mesmo bloqueio de escrita. A proteção é aplicada no backend; tipos Vue não substituem autorização.
 
-CSRF, escrita explícita dos campos validados, FK, enum no banco e texto escapado continuam. O seed padrão é vazio: três responsáveis exigem três cadastros reais com convite. Registros antigos sem workspace são preservados pela migration, porém não aparecem em equipes novas. No Supabase, as três linhas demonstrativas sem chamados foram removidas em transação com guardas de contagem, nome e ausência de usuários.
+CSRF, escrita explícita dos campos validados, FK, enum no banco e texto escapado continuam. O seed padrão é vazio: em uso real, os responsáveis vêm de cadastros com convite; para avaliação local, o `DemoSeeder` da ADR-011 cria uma equipe pronta. Registros antigos sem workspace são preservados pela migration, porém não aparecem em equipes novas.
 
 Sem exclusão, anexos, notificações, recuperação por e-mail, histórico ou bloqueio otimista. Escritas simultâneas são serializadas, mas um formulário antigo pode sobrescrever edição mais recente: última gravação vence. Não existe isolamento por papel dentro de uma equipe: membros veem e editam os chamados dela.
 
@@ -56,7 +56,7 @@ Sem exclusão, anexos, notificações, recuperação por e-mail, histórico ou b
 
 PHPUnit para comportamento/integração e concorrência. Pint com strict_types. TypeScript, ESLint, Prettier e build. CI testa PHP 8.3/8.4, SQLite e PostgreSQL descartável, navegador e imagem Docker.
 
-README é o ponto de entrada. Este arquivo guarda decisões; requisitos.md rastreia escopo; validacao.md registra evidências. AGENTS.md orienta todos os assistentes, e CLAUDE.md encaminha para ele. A auditoria inicial é histórica e não substitui documentação atual.
+README é o ponto de entrada. Este arquivo guarda as decisões e requisitos.md rastreia o escopo. Documentação e testes são atualizados junto com o código que descrevem.
 
 ## Modelo
 
@@ -70,27 +70,27 @@ README é o ponto de entrada. Este arquivo guarda decisões; requisitos.md rastr
 
 Carga é sempre derivada da consulta, sem contador redundante em assignees. Listagem tem paginação de 20 e ordenação estável por abertura/ID. Data exibida em São Paulo e armazenada em UTC.
 
-## ADR-007 — Cloudflare, PostgreSQL e entrega contínua
+## ADR-007 — PostgreSQL gerenciado e entrega contínua
 
-O pedido posterior autorizou GitHub, CI/CD, Supabase e estrutura Cloudflare. SQLite continua local. PHP roda em Containers atrás de um Worker, sem API separada. Uma instância nomeada e limitada a uma atende a demonstração. Containers requer plano compatível e cobrança por uso; nenhuma assinatura foi ativada.
+GitHub, CI e PostgreSQL gerenciado foram acrescentados após a primeira versão local. O SQLite continua sendo o padrão local. Em produção, o PHP roda em container, sem API separada.
 
 PostgreSQL usa TLS e schema `chamados`, separado de public. `app:prepare-production-database` cria esse schema e aplica migrations incrementais e seed; não usa migrate:fresh. Não expor esse schema na Data API. Em operação real, separar usuário de migration e usuário de runtime com privilégio mínimo.
 
-Sessões no PostgreSQL, cache em memória por requisição, fila síncrona, logs stderr e APP_KEY estável em secret. O disco do container não persiste dados. TRUST_PROXY habilita somente confiança no protocolo encaminhado; o Worker substitui esse cabeçalho pela conexão recebida.
+Sessões no PostgreSQL, cache em memória por requisição, fila síncrona, logs em stderr e APP_KEY estável guardada como segredo. O disco do container não persiste dados. TRUST_PROXY habilita apenas a confiança no protocolo encaminhado pelo proxy da hospedagem.
 
 A coordenação PostgreSQL usa o mesmo incremento antes da leitura, sob READ COMMITTED padrão. O teste concorrente cria schema aleatório exclusivo e o remove; a CI usa banco descartável. Não executar testes no banco de produção.
 
-CD manual na main, environment production e CI obrigatória. Secrets passam por arquivos temporários ignorados pelo Git e Docker, removidos ao fim do job. Migrations antecedem rollout, nunca rodam no boot. Mudanças de schema precisam ser retrocompatíveis: rollback de código não reverte dados.
+Migrations antecedem o rollout e nunca rodam no boot do container. Mudanças de schema precisam ser retrocompatíveis: rollback de código não reverte dados.
 
-O login e isolamento foram adicionados depois, na ADR-005. A implantação Cloudflare permanece opcional e depende das credenciais da conta correta. Consulte deploy.md e validacao.md.
+O login e o isolamento foram adicionados depois, na ADR-005. Consulte deploy.md.
 
-## ADR-008 — Vercel como alternativa de hospedagem
+## ADR-008 — Vercel como hospedagem
 
-O usuário autorizou Vercel se simplificar a publicação. `vercel.json` reutiliza o Dockerfile existente através de Services, mantendo Laravel, Postgres e sessões externas. Evitamos duplicar imagens ou mudar o produto para outra stack. O projeto está ligado ao GitHub para deploys da main; migrations são aplicadas antes do rollout. A opção Cloudflare permanece; não há publicação dupla automática.
+A Vercel foi escolhida por simplificar a publicação. O `vercel.json` reutiliza o Dockerfile existente através de Services, mantendo Laravel, PostgreSQL e sessões externas, sem duplicar imagens nem trocar a stack do produto. O projeto está ligado ao GitHub para deploys da `main`; as migrations são aplicadas antes do rollout.
 
 O Dockerfile normaliza leitura/travessia do código recebido por upload. O entrypoint fixa umask e atribui ao usuário Apache os caches gerados na inicialização; não depende do umask do provedor. O smoke da CI inicializa com umask 077 para verificar esse caso.
 
-O domínio `central-de-chamados-neves.vercel.app` foi adicionado ao projeto como domínio público específico, com autorização do usuário. O alias público antigo `chamados-smoky-beta.vercel.app` foi removido. A configuração SSO `all_except_custom_domains` continua protegendo as URLs de deployment; somente o domínio novo permite visitantes chegarem ao cadastro. `APP_URL` aponta para ele para manter sessões e redirecionamentos no mesmo host.
+O domínio `central-de-chamados-neves.vercel.app` foi adicionado ao projeto como domínio público específico. O alias público antigo `chamados-smoky-beta.vercel.app` foi removido. A configuração SSO `all_except_custom_domains` continua protegendo as URLs de deployment; somente o domínio novo permite visitantes chegarem ao cadastro. `APP_URL` aponta para ele para manter sessões e redirecionamentos no mesmo host.
 
 ## ADR-009 — Rotas e atualização da interface
 
@@ -105,3 +105,7 @@ O runtime publicado usa `chamados_runtime`, role PostgreSQL com `USAGE` no schem
 Sessões persistem cifradas no PostgreSQL em produção (`SESSION_ENCRYPT=true`). Respostas web incluem políticas de enquadramento, tipo de conteúdo, referenciador e permissões do navegador; conteúdo autenticado recebe `no-store`, e HTTPS recebe HSTS. O teste de middleware cobre os cabeçalhos básicos e o cache privado; HSTS e `no-store` foram conferidos no domínio publicado. Essas medidas não substituem rotação da senha administrativa, verificação de e-mail ou recuperação de conta.
 
 O utilitário `scripts/backup-production.php` usa a role de runtime para gerar apenas o schema da aplicação em formato custom do PostgreSQL. Cifra o arquivo com AES-256-GCM e verifica autenticação e leitura da lista pelo `pg_restore`; chave e backup ficam em `.tools`, fora do Git. O dump foi restaurado em PostgreSQL temporário local e as contagens de dados conferiram. É um backup manual e local, com limite de 256 MiB por carregar o dump em memória. Manter cópia externa da chave e do backup continua necessário.
+
+## ADR-011 — Demonstração local isolada do seed padrão
+
+O seed padrão permanece vazio para que cadastro real e produção iniciem sem pessoas fictícias. O comando explícito `db:seed --class=DemoSeeder` funciona somente em ambiente `local`/`testing` com SQLite. Ele cria três usuários autenticáveis e um workspace com cinco chamados de exemplo; o fixture vincula os membros diretamente em transação e usa `WorkspaceMembership` para ativá-los, sem criar uma rota de entrada sem convite. Cada chamado passa por `CreateTicket` e, para mudar de status, `UpdateTicket`. Assim, a mesma transação de escrita protege a seleção automática usada pelo produto. O cenário termina com cargas ativas 2/1/0 e demonstra o efeito de resolvidos/fechados. Uma transação externa torna a carga atômica; uma segunda execução reconhece a equipe pronta sem duplicar registros. Conflitos de e-mail interrompem a carga. A equipe de demonstração local é independente das contas publicadas.

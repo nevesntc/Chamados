@@ -91,6 +91,7 @@ class AuthWorkspaceTest extends TestCase
         $this->post('/sair');
         $second = $this->register('João', 'joao@example.test');
         $this->get('/workspace/chamados')->assertInertia(fn ($page) => $page->where('summary.total', 0));
+        $this->get('/workspace/chamados?assignee_id='.$person->id)->assertSessionHasErrors('assignee_id');
         $this->get('/workspace/chamados/'.$ticket->id)->assertNotFound();
         $this->put('/workspace/chamados/'.$ticket->id, [])->assertNotFound();
         $this->post('/workspace/chamados', ['title' => 'Tentativa', 'description' => 'Atribuir a Maria', 'priority' => 'medium', 'assignment_mode' => 'manual', 'assignee_id' => $person->id])->assertSessionHasErrors('assignee_id');

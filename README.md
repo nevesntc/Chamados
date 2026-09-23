@@ -2,61 +2,59 @@
 
 [![Quality](https://github.com/nevesntc/Chamados/actions/workflows/ci.yml/badge.svg)](https://github.com/nevesntc/Chamados/actions/workflows/ci.yml)
 
-Aplicação web para organizar solicitações internas, acompanhar o atendimento e distribuir trabalho entre responsáveis. Construída com **Laravel 13, Inertia 2, Vue 3 e TypeScript**, com SQLite local.
+Aplicação web para registrar solicitações internas, acompanhar o atendimento e distribuir o trabalho entre os responsáveis. Construída com **Laravel 13, Inertia 2, Vue 3 e TypeScript**, usando SQLite no ambiente local.
 
-## O que funciona
+Versão publicada: [central-de-chamados-neves.vercel.app](https://central-de-chamados-neves.vercel.app). Os chamados só ficam acessíveis após login.
+
+## O que a aplicação faz
 
 - Criação, edição, listagem paginada e visualização de chamados.
 - Título, descrição, prioridade, status, responsável e data/hora de abertura.
-- Cadastro e login com sessão segura; cada conta cria um workspace privado e se torna responsável real.
-- Equipe por convite com código temporário; troca de workspace para quem participa de mais de uma equipe.
-- Rotas próprias para Painel, Chamados, Equipe e Perfil; perfil permite alterar nome e senha.
-- Atribuição automática pela menor quantidade de chamados ativos ou escolha manual.
-- Busca por título, filtros combináveis e preservados na URL.
-- Resumo geral e carga atual por responsável.
-- Interface responsiva em português, validação por campo e feedback de gravação.
-- Testes de regras e rotas, incluindo duas atribuições concorrentes em processos independentes.
-- CI: PHP 8.3/8.4, SQLite/PostgreSQL 17, navegador desktop/celular e Docker.
-- Publicação Vercel com PostgreSQL Supabase; estrutura Cloudflare Workers + Containers permanece opcional.
-
-O projeto usa contas reais, sem usuários ou responsáveis fictícios no seed padrão. Cada workspace isola seus chamados e membros. Repositório: [nevesntc/Chamados](https://github.com/nevesntc/Chamados). A comunicação aos avaliadores cabe ao candidato; consulte [a matriz de requisitos](docs/requisitos.md).
-
-Versão publicada: [Central de Chamados](https://central-de-chamados-neves.vercel.app). Esse domínio foi liberado individualmente na Vercel para permitir cadastro público; os chamados continuam protegidos pelo login da aplicação. O alias público antigo foi removido, e as URLs de deployment da Vercel permanecem sob SSO da plataforma.
+- Atribuição automática ao responsável com menos chamados ativos, ou escolha manual.
+- Busca por título e filtros combináveis de status, prioridade e responsável, preservados na URL.
+- Resumo geral dos chamados e carga atual por responsável.
+- Cadastro e login com sessão; cada conta cria um espaço de trabalho próprio e passa a ser um responsável.
+- Equipe por código de convite temporário, com troca de espaço para quem participa de mais de um.
+- Interface responsiva em português, com validação por campo e retorno de gravação.
+- Testes de regras, rotas e isolamento, incluindo duas atribuições concorrentes em processos independentes.
+- CI em PHP 8.3/8.4, SQLite e PostgreSQL 17, navegador desktop/celular e imagem Docker.
 
 ## Pré-requisitos
 
-- PHP 8.3 ou superior com extensões do Laravel, incluindo ctype, curl, dom, fileinfo, filter, hash, mbstring, openssl, pcre, PDO, pdo_sqlite, session, tokenizer e XML. ZIP facilita a instalação pelo Composer.
+- PHP 8.3 ou superior com as extensões usuais do Laravel: ctype, curl, dom, fileinfo, filter, hash, mbstring, openssl, pcre, PDO, pdo_sqlite, session, tokenizer e XML. ZIP facilita a instalação pelo Composer.
 - Composer 2.
-- Node.js 22.13+ e npm. Validado localmente com Node 22.21 e PHP 8.3.30.
-- Git para obter o projeto. SQLite funciona pelo driver PHP; não precisa instalar um servidor de banco.
+- Node.js 22.13+ e npm. Validado com Node 22.21 e PHP 8.3.30.
+- Git. SQLite funciona pelo driver do PHP; não é preciso instalar um servidor de banco.
 - Diretórios `storage` e `bootstrap/cache` graváveis.
 
-Verifique `php -v`, `php -m`, `composer --version` e `node --version`. As versões resolvidas estão em `composer.lock` e `package-lock.json`.
+Confira com `php -v`, `php -m`, `composer --version` e `node --version`. As versões resolvidas estão em `composer.lock` e `package-lock.json`.
 
-## Instalação rápida
+## Instalação
 
-Na pasta do projeto, após clonar ou extrair o código:
+Na pasta do projeto, após clonar:
 
 ```sh
 composer install
 composer run setup
+php artisan db:seed --class=DemoSeeder
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Abra **http://127.0.0.1:8000/cadastro**. O setup cria `.env` e SQLite se não existirem, gera chave somente se ausente, executa migrations, instala o frontend com `npm ci` e gera o build. O seed padrão não cria pessoas. Não apaga chamados existentes.
+O `composer run setup` cria `.env` e o arquivo SQLite se não existirem, gera a chave da aplicação apenas quando ausente, executa as migrations, instala o frontend com `npm ci` e gera o build. Ele não apaga chamados existentes.
 
-### Windows com PHP sem extensões configuradas ou Composer no PATH
+O `DemoSeeder` é opcional e serve para avaliar a aplicação sem precisar criar contas na mão. Ele só roda com SQLite em ambiente local ou de teste, e não deve ser executado em produção. Depois dele, abra **http://127.0.0.1:8000/entrar**; para começar do zero com uma conta própria, pule o seed e use `/cadastro`.
 
-Há um preparador opcional que usa o PHP e o Node já instalados, cria uma configuração PHP **somente do projeto** em `.tools` e baixa o Composer oficial com verificação SHA-256 quando necessário:
+### Contas de demonstração
 
-```powershell
-.\scripts\setup.ps1
-.\scripts\php.ps1 artisan serve --host=127.0.0.1 --port=8000
-```
+O seed cria o espaço **Equipe Demonstração Local** com três responsáveis, cinco chamados cobrindo os quatro status e cargas ativas de 2, 1 e 0. O próximo chamado automático vai para Carla, que está sem chamados ativos. As três contas usam a senha `Demo12345!`:
 
-O script requer acesso à internet. Não altera o `php.ini` global nem a política de execução do PowerShell. Se a política local impedir scripts, use os passos manuais com seu PHP configurado.
+| Pessoa | E-mail |
+| --- | --- |
+| Ana Demonstração | `ana.demo@example.test` |
+| Bruno Demonstração | `bruno.demo@example.test` |
+| Carla Demonstração | `carla.demo@example.test` |
 
-Neste computador, a configuração local e o Composer já foram preparados. O helper `scripts/php.ps1` utiliza essa configuração automaticamente. Ela não é versionada, pois contém caminhos específicos da máquina.
+São endereços `.test` sem caixa postal e senha fixa, destinados apenas à avaliação local. Executar o seed novamente reconhece a equipe já criada e não altera os dados; contas conflitantes interrompem a carga com erro explícito.
 
 ### Instalação manual equivalente
 
@@ -71,15 +69,25 @@ npm run build
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-O comando manual `key:generate` é para a primeira instalação. Não regenere a chave de um ambiente já em uso sem planejar o impacto em dados criptografados e sessões.
+O `key:generate` vale para a primeira instalação. Não regenere a chave de um ambiente em uso sem planejar o impacto em sessões e dados cifrados.
 
-### Primeiro acesso e equipe
+### Windows sem PHP configurado ou Composer no PATH
 
-Cadastre uma conta em `/cadastro`; ela ganha um workspace privado e aparece como responsável. Na aba **Equipe**, o dono gera um código de convite válido por sete dias. Outras pessoas criam suas contas e inserem o código para entrar na equipe. Cada novo membro passa a poder receber chamados automaticamente ou manualmente. Em uma instalação local limpa, cadastre três contas no mesmo workspace para demonstrar três responsáveis. O seed padrão não cria usuários.
+Há um preparador opcional que aproveita o PHP e o Node já instalados, cria uma configuração de PHP **restrita ao projeto** em `.tools` e baixa o Composer oficial com verificação SHA-256 quando necessário:
 
-Na versão publicada, três contas identificadas como **Demonstração** foram cadastradas pela interface e reunidas por convite no mesmo workspace. Três chamados `[Demo]` foram distribuídos automaticamente, um por responsável. O convite usado foi revogado. As credenciais geradas ficam apenas no arquivo local ignorado `.tools/demo-accounts.json`; não estão no repositório e não são pessoas reais.
+```powershell
+.\scripts\setup.ps1
+.\scripts\php.ps1 artisan db:seed --class=DemoSeeder
+.\scripts\php.ps1 artisan serve --host=127.0.0.1 --port=8000
+```
 
-### Desenvolvimento com atualização automática
+O script precisa de acesso à internet. Ele não altera o `php.ini` global nem a política de execução do PowerShell. O helper `scripts/php.ps1` usa `.tools/php.ini` quando existir e repassa essa configuração aos subprocessos PHP, o que é necessário porque comandos como `artisan test` iniciam processos filhos. Essa configuração não é versionada, pois contém caminhos da máquina.
+
+### Equipe com pessoas reais
+
+Cadastre uma conta em `/cadastro`: ela recebe um espaço de trabalho próprio e já aparece como responsável. Na aba **Equipe**, o dono gera um código de convite válido por sete dias. As outras pessoas criam suas contas e informam o código para entrar na mesma equipe, passando a receber chamados de forma automática ou manual. O seed padrão não cria usuário nenhum.
+
+### Desenvolvimento com recarga automática
 
 Em terminais separados:
 
@@ -88,86 +96,90 @@ php artisan serve --host=127.0.0.1 --port=8000
 npm run dev
 ```
 
-Ou `composer run dev` para os dois processos. No Windows com o PHP local, defina antes `$env:PHPRC = (Resolve-Path .tools/php.ini).Path` e use `php .tools/composer.phar run dev` se o Composer não estiver no PATH.
-
-O Vite só é necessário durante desenvolvimento. Após `npm run build`, o Laravel serve o frontend compilado. Se interromper o Vite de forma abrupta e o navegador buscar assets na porta errada, remova apenas o arquivo temporário `public/hot` e gere o build novamente.
+Ou `composer run dev` para subir os dois processos. O Vite só é necessário durante o desenvolvimento: depois de `npm run build`, o Laravel serve o frontend compilado. Se o Vite for interrompido de forma abrupta e o navegador passar a buscar assets na porta errada, apague o arquivo temporário `public/hot` e gere o build de novo.
 
 ## Configuração e banco
 
-O `.env.example` contém as variáveis para execução local. A conexão padrão é `sqlite`, e o arquivo é `database/database.sqlite`. Se definir `DB_DATABASE`, prefira caminho absoluto. Sessões e cache locais usam arquivos; filas são síncronas. Nenhum serviço externo é exigido localmente. Na publicação, sessões usam PostgreSQL e cookies HTTPS.
+O `.env.example` traz as variáveis da execução local. A conexão padrão é `sqlite`, com o arquivo em `database/database.sqlite`; se definir `DB_DATABASE`, prefira caminho absoluto. Sessões e cache usam arquivos e as filas são síncronas, então nenhum serviço externo é exigido localmente. Na versão publicada, as sessões ficam no PostgreSQL e os cookies exigem HTTPS.
 
-Datas são gravadas em UTC e apresentadas em `America/Sao_Paulo`. A abertura usa `created_at`, gerado no servidor e preservado na edição.
+As datas são gravadas em UTC e exibidas em `America/Sao_Paulo`. A data de abertura é o `created_at`, gerado no servidor e preservado nas edições.
 
-Para recomeçar **somente em um banco local descartável**, `php artisan migrate:fresh --seed` apaga todas as tabelas e seus dados. Esse comando não faz parte do setup normal e não deve ser usado em banco com dados a preservar.
+Para recomeçar **apenas em um banco local descartável**, `php artisan migrate:fresh --seed` apaga todas as tabelas e seus dados. Esse comando não faz parte do setup normal.
 
 ## Arquitetura e escolhas
 
-É um monólito com renderização via Inertia. Laravel cuida das rotas, validação, persistência e regras; Vue apresenta as páginas e formulários. Um único repositório e uma única aplicação reduzem atrito entre frontend e backend.
+A aplicação é um monólito com renderização via Inertia. O Laravel cuida de rotas, validação, persistência e regras de negócio; o Vue apresenta as páginas e formulários. Um único repositório e uma única aplicação reduzem o atrito entre frontend e backend.
 
 ```text
-HTTP → autenticação + vínculo de workspace → Form Request → Controller → Action → TicketWriteTransaction
-                                           ↓
-                                    AssigneeSelector → Eloquent → SQLite/PostgreSQL
-HTTP ← redirect / Inertia props ← Controller
-             ↓
-         páginas Vue → componentes de formulário, filtros e indicadores
+HTTP → autenticação + espaço de trabalho → Form Request → Controller → Action → TicketWriteTransaction
+                                          ↓
+                                   AssigneeSelector → Eloquent → SQLite/PostgreSQL
+HTTP ← redirect / props Inertia ← Controller
+            ↓
+        páginas Vue → componentes de formulário, filtros e indicadores
 ```
 
 | Local | Responsabilidade |
 | --- | --- |
 | `app/Enums` | Status, prioridades, rótulos e definição de carga ativa |
 | `app/Http/Requests` | Validação de criação, edição e filtros |
-| `app/Http/Controllers` | Coordenar respostas e consultas para a interface |
+| `app/Http/Controllers` | Coordenar respostas e consultas da interface |
 | `app/Actions/Tickets` | Casos de uso de criação e edição |
-| `app/Services/Tickets` | Escolha de responsável e serialização das escritas |
-| `app/Models` | Relações, casts e escopo de chamados ativos |
-| `database/migrations` e `seeders` | Esquema reproduzível sem contas fictícias |
+| `app/Services/Tickets` | Escolha do responsável e serialização das escritas |
 | `app/Services/Workspaces` | Criação e ativação de vínculos de equipe |
+| `app/Models` | Relações, casts e escopo de chamados ativos |
+| `database/migrations` e `seeders` | Esquema reproduzível e demonstração local opcional |
 | `resources/js/Pages` | Telas de lista, criação, edição e detalhe |
 | `resources/js/Components/Tickets` | Formulário compartilhado, filtros, badges e carga |
-| `resources/css/app.css` | Estilos e breakpoints da interface, com Tailwind 4 |
+| `resources/css/app.css` | Estilos e breakpoints, com Tailwind 4 |
 | `tests` | Regras, HTTP, persistência e concorrência real |
 
-Aplicamos responsabilidade única, nomes explícitos, tipos, validação centralizada e compartilhamento do formulário. Eloquent é utilizado diretamente; não criamos interfaces e repositories que apenas repetiriam o ORM. Isso é código limpo dentro das convenções do Laravel, não Clean Architecture estrita independente de framework.
+**Por que essa stack.** Laravel, Inertia e Vue cobrem o problema sem exigir uma API separada nem roteamento duplicado, que seria o custo de um SPA com backend REST para uma aplicação interna deste tamanho. O TypeScript mantém os contratos das propriedades entre servidor e telas. Tailwind e os ícones Lucide dão consistência visual sem construir um design system. O SQLite deixa a avaliação local trivial, e o mesmo código roda em PostgreSQL gerenciado na publicação.
 
-**Por que essa stack:** Laravel, Inertia e Vue alinham-se às tecnologias indicadas no desafio. Inertia dispensa uma API separada e roteamento duplicado para este frontend. TypeScript ajuda a manter os contratos de propriedades. Tailwind e ícones Lucide sustentam uma interface consistente. SQLite facilita a avaliação local; PostgreSQL gerenciado sustenta a publicação.
+**Como separei as responsabilidades.** Controllers coordenam HTTP, Form Requests validam, Actions implementam os casos de uso de escrita, Services isolam a escolha do responsável e a transação, e Enums são a fonte única de status e prioridades. Uso o Eloquent diretamente: não criei repositories ou interfaces que apenas repetiriam o ORM sem uma segunda implementação real. É código limpo dentro das convenções do Laravel, não Clean Architecture estrita e independente de framework.
 
-Mudanças de arquitetura devem atualizar esta seção, as [decisões registradas](docs/arquitetura.md), os testes afetados e a [matriz de requisitos](docs/requisitos.md) na mesma alteração.
+### Escopo além do enunciado
 
-## Regras de negócio e respostas às ambiguidades
+O enunciado não pedia cadastro de responsáveis com tela própria: bastava que existissem e pudessem ser selecionados. Optei por ir além e implementar cadastro, login e espaços de trabalho isolados, por três motivos:
 
-1. **Ativos:** `open` (aberto) e `in_progress` (em andamento). `resolved` e `closed` são concluídos: o atendimento já terminou e não ocupa a carga.
-2. **Criação:** sempre inicia em aberto. O cliente não escolhe ID nem data de abertura.
-3. **Prioridade:** baixa, média ou alta. Não recebe peso na distribuição, pois o requisito compara a quantidade de chamados.
-4. **Automático:** menor quantidade de ativos, incluindo pessoas com zero; empate pelo menor ID. É determinístico, sem promessa de rodízio histórico.
+1. O cliente descreve um ambiente compartilhado, em que funcionários abrem chamados e o suporte acompanha. Sem identificar quem está usando o sistema, "responsável claro" continuaria sem solução: qualquer pessoa poderia reatribuir ou fechar o chamado de outra.
+2. Os responsáveis passam a ser contas reais em vez de registros fictícios, o que torna a lista de responsáveis um reflexo da equipe, e não um cadastro paralelo a manter.
+3. Permite publicar a aplicação em uma URL pública para demonstração sem expor os dados de quem a testar.
+
+O custo é mais superfície de código e mais o que manter. Para compensar, o isolamento entre espaços é verificado por testes (route binding, validação de responsável e consultas), e o `DemoSeeder` mantém a avaliação local em um comando, sem obrigar quem for avaliar a criar três contas e trocar convites.
+
+## Regras de negócio e decisões sobre pontos em aberto
+
+1. **Chamados ativos:** `open` (aberto) e `in_progress` (em andamento). `resolved` e `closed` são concluídos: o atendimento terminou e não ocupa mais a carga de ninguém. É essa a definição de "em aberto" usada na distribuição.
+2. **Criação:** todo chamado começa em aberto. O cliente não escolhe ID nem data de abertura.
+3. **Prioridade:** baixa, média ou alta. Não pesa na distribuição, porque o requisito compara a quantidade de chamados, não o esforço.
+4. **Automático:** escolhe a menor quantidade de ativos, incluindo quem está com zero, e desempata pelo menor ID. É determinístico, sem promessa de rodízio histórico.
 5. **Manual:** a escolha válida é respeitada independentemente da carga.
-6. **Edição:** começa mantendo o responsável atual. A redistribuição exige selecionar automático; nesse caso, o próprio chamado é excluído da comparação.
-7. **Mudança de status:** permitimos quaisquer transições entre os quatro valores, inclusive reabertura. Reabrir mantém a pessoa responsável salvo escolha explícita diferente.
-8. **Sem responsáveis:** erro de validação e nenhum chamado incompleto salvo.
-9. **Busca e lista:** título, status, prioridade e responsável; 20 itens por página; abertura decrescente e ID decrescente como desempate. Os resumos representam todo o workspace ativo, não apenas o filtro.
-10. **Limites:** título de até 150 caracteres e descrição de até 5.000, obrigatórios e validados no backend.
-11. **Atualizações simultâneas:** as escritas são serializadas; duas edições do mesmo chamado usam a última gravação recebida. Não há bloqueio otimista contra formulários antigos nesta versão.
-12. **Isolamento:** cadastro cria workspace privado; só membros entram por convite. Chamados e opções de responsáveis são filtrados pelo workspace, inclusive nas rotas de detalhe e edição. Convites são armazenados como hash e expiram em sete dias.
+6. **Edição:** mantém o responsável atual por padrão. Redistribuir exige selecionar o modo automático e, nesse caso, o próprio chamado sai da comparação.
+7. **Status:** qualquer transição entre os quatro valores é permitida, inclusive reabertura. Reabrir mantém o responsável, salvo escolha explícita diferente.
+8. **Sem responsáveis:** erro de validação, sem gravar chamado incompleto.
+9. **Lista:** busca por título e filtros de status, prioridade e responsável; 20 itens por página; ordenação por abertura decrescente com ID como desempate. Os resumos consideram todo o espaço de trabalho, não apenas o filtro aplicado.
+10. **Limites:** título até 150 caracteres e descrição até 5.000, obrigatórios e validados no servidor.
+11. **Edições simultâneas:** as escritas são serializadas, e duas edições do mesmo chamado terminam na última gravação recebida. Não há bloqueio otimista contra formulários abertos há muito tempo.
+12. **Isolamento:** o cadastro cria um espaço privado e só se entra em outro por convite. Chamados e opções de responsáveis são filtrados pelo espaço ativo, inclusive nas rotas de detalhe e edição. Convites são guardados como hash e expiram em sete dias.
 
 ### Concorrência na atribuição
 
-Todas as Actions de escrita usam `TicketWriteTransaction`. A primeira instrução dentro da transação atualiza a linha única de `ticket_write_locks`, antes de qualquer leitura da carga. No SQLite, isso adquire a reserva de escrita e faz outra gravação aguardar. Selecionar o responsável e salvar o chamado acontecem na mesma transação.
+Escolher o responsável com menos chamados e gravar o chamado são duas operações que precisam acontecer juntas: se dois chamados forem abertos ao mesmo tempo, ambos podem ler a mesma carga e cair sobre a mesma pessoa.
 
-A linha é infraestrutura de coordenação, não uma contagem de chamados. Evita depender de `IMMEDIATE`, que a versão instalada do Laravel só aplica no PHP 8.4+. Há espera de 5 segundos por bloqueio, até três tentativas transacionais e erro compreensível se o SQLite continuar ocupado. Não use escrita direta fora das Actions para operações da aplicação.
+Todas as Actions de escrita passam por `TicketWriteTransaction`. A primeira instrução dentro da transação atualiza a linha única de `ticket_write_locks`, antes de qualquer leitura de carga. No SQLite isso adquire a reserva de escrita e faz a outra gravação aguardar. A seleção do responsável e a gravação do chamado ficam na mesma transação.
 
-O teste `ConcurrentAssignmentTest` usa **dois processos PHP**, com o mesmo arquivo SQLite ou schema PostgreSQL isolado, com sinais para sobrepor as transações. Ele verifica que o segundo processo espera e escolhe com base na gravação anterior. Não é apenas um teste sequencial ou uma simulação de banco.
+Essa linha é infraestrutura de coordenação, não uma contagem de chamados. Ela evita depender do modo `IMMEDIATE`, que a versão do Laravel usada só aplica no PHP 8.4+. Há espera de 5 segundos por bloqueio, até três tentativas e uma mensagem compreensível se o banco continuar ocupado.
+
+O `ConcurrentAssignmentTest` usa **dois processos PHP** sobre o mesmo arquivo SQLite, ou um schema PostgreSQL isolado, com sinais para sobrepor as transações. Ele verifica que o segundo processo espera e decide a partir da gravação anterior; não é um teste sequencial nem uma simulação.
 
 ## SQLite, PostgreSQL e publicação
 
-SQLite permanece como padrão local e pode servir produção quando persistência, backup e volume forem compatíveis. Para esta publicação, usamos PostgreSQL gerenciado no Supabase, acessado somente pelo Laravel.
+O SQLite é o padrão local e atende produção quando persistência, backup e volume forem compatíveis. Para a versão publicada usei PostgreSQL gerenciado no Supabase, acessado somente pelo Laravel.
 
-A publicação atual é **Vercel Container Image → PHP/Apache → Supabase**. PHP permanece no container. Sessões ficam no PostgreSQL; arquivos do container são descartáveis. Não há API separada. A estrutura Cloudflare continua documentada como opção de hospedagem.
+A publicação é **Vercel Container Image → PHP/Apache → Supabase**, com o mesmo Dockerfile que a CI constrói e testa. As sessões ficam no PostgreSQL, porque os arquivos do container são descartáveis. A suíte e o teste de concorrência passaram na CI com PostgreSQL 17.
 
-A configuração aceita schema dedicado e TLS. A suíte e a concorrência real passaram na CI com PostgreSQL 17. O Supabase PostgreSQL 17.6 recebeu migrations pelo Session pooler com TLS; os testes destrutivos não rodam nele. Veja [evidências](docs/validacao.md).
-
-A Vercel usa o mesmo Dockerfile por Container Images, configurado em `vercel.json` e ligado ao repositório GitHub.
-
-Siga [o guia de publicação](docs/deploy.md) para configurar segredos, conexão e migrations. Migrations não importam registros do SQLite. O sistema exige login nas rotas de trabalho.
+O [guia de publicação](docs/deploy.md) descreve segredos, conexão e migrations. As migrations criam a estrutura e não importam registros do SQLite.
 
 ## Qualidade e testes
 
@@ -179,56 +191,42 @@ npm run typecheck
 npm run build
 ```
 
-No Windows com a configuração do projeto, substitua `php` por `.\\scripts\\php.ps1`. Para usar o PHPUnit diretamente: `.\\scripts\\php.ps1 vendor/bin/phpunit`.
+No Windows com a configuração local do projeto, use `.\scripts\php.ps1 artisan test`; o helper propaga o `.tools/php.ini` aos subprocessos. Também é possível chamar `php -c .tools\php.ini vendor\bin\phpunit` diretamente. Para formatar: `php vendor/bin/pint` e `npm run format`.
 
-Formatar: `php vendor/bin/pint` e `npm run format`. ESLint cuida dos problemas de código; Prettier cuida do layout dos arquivos Vue/TS/CSS.
+A suíte cobre atribuição manual e automática, empate, responsável sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, cadastro, login, isolamento entre espaços, convites, perfil, 404, o seed de demonstração e a concorrência. Os testes comuns usam SQLite em memória; o de concorrência usa arquivo temporário e, na CI com PostgreSQL, um schema exclusivo.
 
-A suíte cobre atribuições manual/automática, empate, pessoa sem chamados, status concluídos, reabertura, edição sem troca implícita, redistribuição, campos inválidos e internos, filtros, paginação, cadastro/login, isolamento de workspaces, convites, perfil, 404 e concorrência. Localmente, os testes comuns usam SQLite em memória; o concorrente usa arquivo temporário. Na CI PostgreSQL, os testes usam banco descartável e a concorrência cria um schema temporário exclusivo.
+A [CI](.github/workflows/ci.yml) roda PHP 8.3/8.4, Node 22, PostgreSQL descartável, Chromium desktop e celular, e a imagem Docker.
 
-A [CI](.github/workflows/ci.yml) verifica PHP 8.3/8.4, Node 22, PostgreSQL descartável, Chromium desktop/celular e imagem Docker. A Vercel publica a cada push na main conectada; o [CD Cloudflare](.github/workflows/deploy.yml) continua manual e exige CI aprovada. Veja [validação](docs/validacao.md).
+## Segurança e limites assumidos
 
-## Segurança e limites deliberados
+- CSRF nas rotas web, consultas parametrizadas, validação no servidor e campos de escrita declarados explicitamente.
+- Descrições renderizadas como texto pelo Vue, sem HTML arbitrário.
+- Chaves estrangeiras e valores de status e prioridade restritos nas migrations.
+- Login por sessão do Laravel, senhas com hash, limite de tentativas e espaço isolado por vínculo de equipe. Convites são guardados como hash e expiram.
+- O route binding de chamados e a validação de responsável são limitados ao espaço ativo, então um ID de outra equipe resulta em 404 ou erro de validação.
+- Em produção, uma role PostgreSQL restrita ao schema da aplicação, sessões cifradas no banco, cabeçalhos contra enquadramento e adivinhação de tipo, e `no-store` nas páginas autenticadas.
+- `.env`, banco local, dependências e ferramentas de máquina ficam fora do Git.
+- Nesta versão não há exclusão de chamados, anexos, SLA, notificações, comentários, recuperação de senha por e-mail, verificação de e-mail ou histórico de eventos. A recuperação de senha depende de integrar um provedor de e-mail.
+- O servidor de desenvolvimento escuta em `127.0.0.1`. Em produção, mantenha HTTPS, `APP_KEY` estável, backup do banco e segredos fora do repositório.
+- O bloqueio global de escrita privilegia correção e simplicidade nesta escala; não é uma solução para alto volume distribuído.
 
-- CSRF nas rotas web, consultas parametrizadas, validação no servidor e campos de escrita selecionados explicitamente.
-- Descrição renderizada como texto por Vue, sem HTML arbitrário.
-- Chaves estrangeiras e valores permitidos de status/prioridade definidos nas migrations.
-- `.env`, SQLite, dependências e ferramentas locais ignorados pelo Git.
-- Login via sessão Laravel, senhas com hash, CSRF, limitação de tentativas e workspace isolado por membership. Convites temporários são armazenados como hash.
-- Produção usa uma role PostgreSQL limitada ao schema `chamados`, sessões cifradas no banco, cabeçalhos contra enquadramento e interpretação indevida de conteúdo, e `no-store` nas páginas autenticadas.
-- Sem exclusão, anexos, SLA, notificações, comentários, recuperação por e-mail ou histórico de eventos nesta versão. A recuperação de senha fora da sessão depende de integrar um provedor de e-mail no futuro.
-- O servidor de desenvolvimento fica em `127.0.0.1`; em produção, mantenha HTTPS, APP_KEY estável, banco com backup e segredos fora do repositório.
-- O bloqueio global de escrita privilegia correção e simplicidade para esta escala; não é uma solução de alto volume distribuído.
-- Não há promessa de ausência de bugs. Verificações executadas e limitações conhecidas estão registradas.
-- Um backup cifrado local foi gerado e restaurado em PostgreSQL temporário; as contagens de contas, responsáveis e chamados conferiram. A chave precisa ser guardada separadamente; backup externo periódico ainda está pendente. A senha administrativa do Supabase que apareceu na conversa deve ser rotacionada no painel.
+## Demonstração
 
-## Colaboração humana e com IA
-
-Leia [AGENTS.md](AGENTS.md) antes de alterar código. [CLAUDE.md](CLAUDE.md) aponta para a mesma fonte de instruções. Os documentos descrevem invariantes, estrutura e comandos para evitar regras divergentes entre assistentes.
-
-A [auditoria inicial](docs/auditoria-e-plano.md) é um registro histórico anterior à implementação. Em caso de diferença, o README e as decisões de arquitetura atuais descrevem o estado implementado.
-
-A [auditoria final](docs/auditoria-final.md) separa o escopo entregue dos riscos operacionais que permanecem.
-
-## Entrega e demonstração
-
-1. Cadastre uma conta, entre no Painel e abra a aba Equipe.
-2. Convide outras duas contas reais para mostrar três responsáveis.
-3. Crie um chamado automático e confira o responsável.
-4. Edite para resolvido e observe a carga diminuir.
-5. Mostre a seleção manual, o isolamento entre workspaces e um teste da regra.
-6. Explique o desempate e a proteção contra concorrência.
-
-Antes de entregar: executar o setup em cópia limpa, revisar as pendências da matriz, conferir o repositório GitHub, conceder acesso aos avaliadores quando privado e enviar o endereço pelo canal combinado. O enunciado original e suas reproduções não devem ser incluídos no repositório.
+1. Rode o `DemoSeeder`, entre como Ana e abra a aba **Equipe** para ver os três responsáveis e suas cargas.
+2. Crie um chamado com distribuição automática e confira que ele vai para Carla, que está com carga zero.
+3. Edite um chamado para resolvido e observe a carga do responsável diminuir.
+4. Mostre a seleção manual e o isolamento entre espaços de trabalho.
+5. Explique o desempate por menor ID e a proteção contra escritas concorrentes.
 
 ## Referências e bibliotecas
 
-- [Laravel](https://laravel.com/docs/13.x), framework PHP e esqueleto oficial; [notas da versão](https://laravel.com/docs/13.x/releases).
-- [Inertia](https://inertiajs.com/docs/v2/installation/server-side-setup), integração Laravel/Vue.
+- [Laravel](https://laravel.com/docs/13.x), framework PHP e esqueleto oficial.
+- [Inertia](https://inertiajs.com/docs/v2/installation/server-side-setup), integração entre Laravel e Vue.
 - [Vue](https://vuejs.org/guide/introduction.html) e [TypeScript](https://www.typescriptlang.org/docs/).
 - [Tailwind CSS](https://tailwindcss.com/docs) e [Lucide](https://lucide.dev/), estilos e ícones.
 - [Vite](https://vite.dev/guide/), build e desenvolvimento.
 - [PHPUnit](https://docs.phpunit.de/), [Laravel Pint](https://laravel.com/docs/13.x/pint), [ESLint](https://eslint.org/) e [Prettier](https://prettier.io/).
-- [SQLite: usos apropriados](https://www.sqlite.org/whentouse.html) e [transações](https://www.sqlite.org/lang_transaction.html).
-- [Supabase: conexão PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres), referência para evolução futura.
+- [SQLite: quando usar](https://www.sqlite.org/whentouse.html) e [transações](https://www.sqlite.org/lang_transaction.html).
+- [Supabase: conexão PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
-Interface própria, sem template visual externo. Assistência de IA usada para planejamento, implementação e verificação; o candidato deve revisar e entender as decisões antes de apresentar.
+A interface é própria, sem template visual externo. As decisões de arquitetura estão registradas aqui e em [docs/arquitetura.md](docs/arquitetura.md). Usei assistência de IA no planejamento, na implementação e na verificação, revisando o resultado.

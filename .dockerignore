@@ -2,7 +2,6 @@
 .github
 .env
 .env.*
-.dev.vars*
 .tools
 tmp
 node_modules
@@ -15,7 +14,6 @@ bootstrap/cache/*.php
 database/*.sqlite*
 test-results
 playwright-report
-.wrangler
 
 .secrets*.json
 

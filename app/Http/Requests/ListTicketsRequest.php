@@ -22,7 +22,7 @@ class ListTicketsRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:150'],
             'status' => ['nullable', Rule::enum(TicketStatus::class)],
             'priority' => ['nullable', Rule::enum(TicketPriority::class)],
-            'assignee_id' => ['nullable', 'integer', 'exists:assignees,id'],
+            'assignee_id' => ['nullable', 'integer', Rule::exists('assignees', 'id')->where('workspace_id', $this->user()?->current_workspace_id)],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
