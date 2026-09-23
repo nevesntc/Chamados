@@ -74,6 +74,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            storage/logs/
           retention-days: 7
   container:
     runs-on: ubuntu-latest
