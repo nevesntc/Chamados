@@ -74,6 +74,22 @@ class AuthWorkspaceTest extends TestCase
         $this->get('/cadastro')->assertRedirect('/workspace');
     }
 
+    public function test_session_ends_with_the_browser_and_stays_short(): void
+    {
+        // O driver `array` da suíte não emite cookie; aqui interessa o comportamento real.
+        config(['session.driver' => 'file']);
+        $this->register('Maria Silva', 'maria@example.test');
+        $response = $this->get('/workspace')->assertOk();
+
+        $cookie = collect($response->headers->getCookies())
+            ->first(fn ($candidate) => $candidate->getName() === config('session.cookie'));
+        $this->assertNotNull($cookie, 'A resposta autenticada deve carregar o cookie de sessão.');
+        // Expiração zero faz o navegador descartar o cookie ao fechar, sem gravá-lo em disco.
+        $this->assertSame(0, $cookie->getExpiresTime());
+        $this->assertTrue($cookie->isHttpOnly());
+        $this->assertLessThanOrEqual(30, (int) config('session.lifetime'));
+    }
+
     public function test_each_sensitive_action_has_its_own_rate_limit(): void
     {
         // Oito tentativas de senha errada esgotam o limite de login.

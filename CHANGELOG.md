@@ -1,5 +1,11 @@
 # Histórico
 
+## 0.5.0 — 2026-09-23
+
+- Sessão expira com 30 minutos de inatividade e termina ao fechar o navegador.
+- Aplicação publicada passa a rodar na mesma região do banco, cortando cerca de 1 segundo por tela.
+- Limites de tentativa isolados por ação, e permissões de produção para a gestão de equipe.
+
 ## 0.4.0 — 2026-09-23
 
 - Gestão da equipe: o dono renomeia o espaço e desliga pessoas, e cada membro pode sair por conta própria.

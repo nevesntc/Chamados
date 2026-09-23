@@ -133,3 +133,11 @@ O dono do espaço renomeia a equipe e desliga pessoas; qualquer membro sai por c
 O `throttle:N,M` genérico do Laravel identifica um visitante por domínio e IP, sem considerar a rota. Login e cadastro, ambos anônimos, acabavam no mesmo contador: gastar tentativas em um consumia o outro, e o menor limite entre eles derrubava a próxima requisição. Em uma rede com saída única, poucas pessoas legítimas travariam a porta de entrada.
 
 Cada ação sensível — login, cadastro, convite, entrada por código e troca de senha — passa a ter um limitador nomeado, registrado em `AppServiceProvider`, com chave própria por conta autenticada ou por IP. Os limites por minuto continuam os mesmos; muda apenas o isolamento entre eles. Um teste de integração fixa a regra: esgotar o login não impede um cadastro.
+
+## ADR-014 — Duração da sessão
+
+A sessão expira com 30 minutos de inatividade e não sobrevive ao fechamento do navegador (`SESSION_EXPIRE_ON_CLOSE`). O padrão do Laravel, 120 minutos com cookie persistente, é confortável para um produto de uso pessoal, mas este é um sistema interno de trabalho, aberto com frequência em máquina compartilhada do escritório descrito pelo cliente. Uma sessão longa gravada em disco significa que a próxima pessoa a usar o computador entra como a anterior.
+
+Como cada requisição renova o prazo, o limite só incomoda quem parou de trabalhar. Os valores ficam em `SESSION_LIFETIME` e `SESSION_EXPIRE_ON_CLOSE`, e o padrão da aplicação em `config/session.php` já é o curto, para que uma instalação nova nasça com a política correta mesmo sem essas variáveis.
+
+Um teste verifica o contrato observável: a resposta autenticada traz o cookie de sessão com expiração zero e marcado `HttpOnly`, e o prazo configurado não passa de 30 minutos. Em produção, o cookie também é `Secure` e o conteúdo da sessão é cifrado no PostgreSQL.
