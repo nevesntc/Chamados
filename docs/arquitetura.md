@@ -141,3 +141,13 @@ A sessão expira com 30 minutos de inatividade e não sobrevive ao fechamento do
 Como cada requisição renova o prazo, o limite só incomoda quem parou de trabalhar. Os valores ficam em `SESSION_LIFETIME` e `SESSION_EXPIRE_ON_CLOSE`, e o padrão da aplicação em `config/session.php` já é o curto, para que uma instalação nova nasça com a política correta mesmo sem essas variáveis.
 
 Um teste verifica o contrato observável: a resposta autenticada traz o cookie de sessão com expiração zero e marcado `HttpOnly`, e o prazo configurado não passa de 30 minutos. Em produção, o cookie também é `Secure` e o conteúdo da sessão é cifrado no PostgreSQL.
+
+## ADR-015 — O container recusa subir com migration pendente
+
+Migrations continuam fora do boot, pela ADR-007: rodá-las na inicialização de um container que pode escalar significa várias instâncias alterando o schema ao mesmo tempo. Só que a Vercel publica a cada push na `main`, enquanto a migration é um passo manual, e essa janela já causou um incidente real — o código que consulta `assignees.deactivated_at` foi ao ar antes da coluna existir, e as telas de chamados e equipe responderam 500 até a migration rodar.
+
+A correção não é migrar no boot, e sim falhar no boot. `app:assert-database-ready` compara os arquivos de migration com os registros aplicados e sai com erro listando os pendentes; o `entrypoint` o executa antes de entregar o processo ao Apache. Um deploy adiantado não fica no ar quebrado: ele não sobe, e o motivo aparece no log do deploy com o nome das migrations que faltam.
+
+O custo é que um banco inacessível também impede o boot. É aceitável, porque uma aplicação sem banco não atende nenhuma rota de trabalho, e falhar cedo é mais fácil de diagnosticar do que erro intermitente em produção.
+
+Três testes cobrem o comando — schema em dia, migration faltando e banco nunca preparado — e a CI verifica o comportamento na imagem real, exigindo que o container recuse subir antes de o banco ser preparado.

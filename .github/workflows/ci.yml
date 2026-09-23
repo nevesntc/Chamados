@@ -105,6 +105,11 @@ jobs:
           SESSION_DRIVER=database
           CACHE_STORE=array
           EOF
+          # Antes de preparar o banco, o container deve recusar subir.
+          if docker run --rm --network host --env-file /tmp/container.env --entrypoint sh chamados:test -c 'chamados-entrypoint true'; then
+            echo 'O container subiu com o banco sem migrations; o guard nao funcionou.'
+            exit 1
+          fi
           docker run --rm --network host --env-file /tmp/container.env --entrypoint php chamados:test artisan app:prepare-production-database
           docker run -d --name chamados --network host --env-file /tmp/container.env --entrypoint sh chamados:test -c 'umask 077; exec chamados-entrypoint apache2-foreground'
           for attempt in $(seq 1 30); do

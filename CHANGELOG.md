@@ -2,6 +2,7 @@
 
 ## 0.5.0 — 2026-09-23
 
+- O container recusa subir com migration pendente, em vez de servir telas quebradas.
 - Sessão expira com 30 minutos de inatividade e termina ao fechar o navegador.
 - Aplicação publicada passa a rodar na mesma região do banco, cortando cerca de 1 segundo por tela.
 - Limites de tentativa isolados por ação, e permissões de produção para a gestão de equipe.

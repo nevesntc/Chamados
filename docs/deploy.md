@@ -62,6 +62,14 @@ A computação da Vercel roda em `pdx1` (Oregon), fixada em `vercel.json`, porqu
 
 Ao trocar de banco ou de região, confira o cabeçalho `X-Vercel-Id` da resposta: ele mostra a borda e a região de computação, nessa ordem.
 
+## Proteção contra migration pendente
+
+O container recusa subir quando o banco está atrás das migrations que o código espera. O `entrypoint` chama `php artisan app:assert-database-ready` depois de gerar os caches: o comando compara os arquivos de migration com o que foi aplicado e sai com erro listando o que falta. Sem isso, um deploy publicado antes da migration serve telas quebradas com 500, e a causa só aparece no console de quem estiver usando.
+
+O comando não altera nada e depende apenas de leitura na tabela `migrations`, já permitida à role de runtime. Em compensação, um banco inacessível também impede o boot: é falha visível no deploy em vez de aplicação no ar sem conseguir responder.
+
+A CI verifica os dois lados: o container precisa recusar subir contra um banco ainda não preparado e subir normalmente depois de `app:prepare-production-database`.
+
 ## Verificação após publicar
 
 Confira `/up`, o redirecionamento de `/workspace` para `/entrar`, cadastro, equipe por convite, criação e edição de chamado, e persistência após novo login. O `/up` confirma que a aplicação subiu, mas não valida login nem banco.
